@@ -9,6 +9,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
+using Task_Flow.WebAPI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+{
+    builder.WithOrigins("http://localhost:3001/").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+}));
+ 
+builder.Services.AddSignalR();
 // Database connection
 builder.Services.AddDbContext<TaskFlowDbContext>(opt =>
 {
@@ -83,10 +91,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors(x =>
+{
+    x.AllowAnyMethod()
+    .AllowAnyHeader()
+    .SetIsOriginAllowed(origin => true)
+    .AllowCredentials();
+});
+
+
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<ConnectionHub>("/connect");
 app.Run();
