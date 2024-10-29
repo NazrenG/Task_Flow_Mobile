@@ -28,14 +28,12 @@ namespace Task_Flow.WebAPI.Controllers
         {
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var id = int.Parse(userId);
-            var item = await _userService.GetUserById(userId);
+            
             if (userId == null)
             {
                 return Unauthorized("Invalid token or user not found.");
             }
-
+            var item = await _userService.GetUserById(userId);
             var projects = await _projectService.GetProjects();
             var userProjects = projects
                 .Where(p => p.CreatedById == userId)
@@ -55,13 +53,13 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetUserProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var id = int.Parse(userId);
-            var item = await _userService.GetUserById(userId);
+ 
+           
             if (userId == null)
             {
                 return Unauthorized("Invalid token or user not found.");
             }
+            var item = await _userService.GetUserById(userId);
             var count = await _projectService.GetUserProjectCount(item.Id);
 
             return Ok(count);

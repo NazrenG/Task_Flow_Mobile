@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Task_Flow.DataAccess.Abstract;
+using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 
@@ -19,11 +21,14 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly UserManager<CustomUser> _userManager;
         // private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IQuizService _quizService;
+        private readonly IUserService _userService;
 
-        public AuthController(UserManager<CustomUser> userManager, IConfiguration configuration)
+        public AuthController(UserManager<CustomUser> userManager, IConfiguration configuration,IQuizService quizService,IUserService userService)
         {
             _userManager = userManager;
-            //  _roleManager = roleManager;
+            _quizService = quizService;
+           _userService = userService;  
             _configuration = configuration;
         }
 
@@ -41,7 +46,7 @@ namespace Task_Flow.WebAPI.Controllers
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (result.Succeeded)
             {
-
+                await _quizService.Add(new Quiz());
                 return Ok(new { Status = "Success", Message = "User created successfully!" });
             }
 
@@ -92,7 +97,7 @@ namespace Task_Flow.WebAPI.Controllers
             return token;
         }
         [Authorize]
-        [HttpGet("current-user")]
+        [HttpGet("currentUser")]
         public async Task<IActionResult> GetCurrentUserData()
         {
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
@@ -110,5 +115,12 @@ namespace Task_Flow.WebAPI.Controllers
             });
         }
 
+        [HttpGet("UsersCount")]
+        public async Task<IActionResult> GetUserCount()
+        {
+            var count = await _userService.GetAllUserCount();
+
+            return Ok(count);
+        }
     }
 }

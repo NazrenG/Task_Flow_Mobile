@@ -106,10 +106,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest("User not authenticated.");
             }
 
-            if (!int.TryParse(userId, out int id))
-            {
-                return BadRequest("Invalid user ID.");
-            }
+           
 
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage)
@@ -131,9 +128,8 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var id = int.Parse(userId);
 
-            var list = await notificationService.GetNotifications();
+ var list = await notificationService.GetNotifications();
 
             return Ok(list.Where(l => l.UserId == userId && l.IsCalendarMessage == false).Count());
         }
