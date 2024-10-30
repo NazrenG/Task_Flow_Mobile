@@ -6,5 +6,6 @@ namespace Task_Flow.DataAccess.Abstract
 {
   public  interface INotificationDal: IEntityRepository<Notification>
     {
+        Task<List<Notification>> GetNotifications();  
     }
 }

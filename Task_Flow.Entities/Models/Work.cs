@@ -9,11 +9,13 @@ namespace Task_Flow.Entities.Models
 
         public string? Description { get; set; }
 
-        public DateTime ? Created { get; set; }
+        public DateTime ? StartTime { get; set; }
         public DateTime Deadline { get; set; }
-        public string? Status { get; set; }
+        public string? Status { get; set; }//to do,in progress,done
 
         public string? Priority { get; set; }// Urgent, Primary, Simple
+        
+        public string? Color { get; set; }
         public int ProjectId { get; set; }
 
         public string? CreatedById { get; set; }//userId
@@ -24,9 +26,6 @@ namespace Task_Flow.Entities.Models
         public virtual List<Comment>? Comments { get; set; } 
         public virtual List<TaskAssigne>? TaskAssignees { get; set; } 
         public virtual List<TaskCustomize>? TaskCustomizes { get; set; }
-        public Work()
-        {
-            Created=DateTime.Now;
-        }
+        
     }
 }

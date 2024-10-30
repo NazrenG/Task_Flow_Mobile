@@ -15,40 +15,55 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IProjectService _projectService;
 
         private readonly IUserService _userService;
+        private readonly ITeamMemberService _teamMemberService;
 
-        public ProjectController(IProjectService projectService, IUserService userService)
+        public ProjectController(IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService)
         {
             _projectService = projectService;
             _userService = userService;
+            _teamMemberService = teamMemberService; 
         }
 
+     [Authorize]
+[HttpGet("ExtendedProjectList")]
+public async Task<IActionResult> GetExtendedProjectList()
+{
+    var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Unauthorized("Invalid token or user not found.");
+    }
+
+    var item = await _userService.GetUserById(userId);
+    if (item == null)
+    {
+        return NotFound("User not found.");
+    }
+
+    var projects = await _projectService.GetProjects(userId);
+    if (projects == null || !projects.Any())
+    {
+        return NotFound("No projects found for this user.");
+    }
+
+    var userProjects = projects
+        .Select(p => new ExtendedProjectListDto
+        { 
+            Title = p.Title,
+            TotalTask = 24,
+            CompletedTask = 12,
+            ParticipantsPath = p.TeamMembers?.Where(t => t.User != null && t.User.Image != null)
+                                              .Select(t => t.User.Image)
+                                              .ToList() ?? new List<string>(),
+            Color = p.Color,
+        });
+
+    return Ok(userProjects);
+}
+
+
         [Authorize]
-        [HttpGet("UserProjects")]
-        public async Task<IActionResult> GetUserProjects()
-        {
-
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (userId == null)
-            {
-                return Unauthorized("Invalid token or user not found.");
-            }
-            var item = await _userService.GetUserById(userId);
-            var projects = await _projectService.GetProjects();
-            var userProjects = projects
-                .Where(p => p.CreatedById == userId)
-                .Select(p => new ProjectDto
-                {
-                    CreatedById = p.CreatedById,
-                    Description = p.Description,
-                    IsCompleted = p.IsCompleted,
-                    Title = p.Title,
-                });
-
-            return Ok(userProjects);
-        }
-        [Authorize]
-
         [HttpGet("UserProjectCount")]
         public async Task<IActionResult> GetUserProjectCount()
         {
@@ -59,8 +74,8 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized("Invalid token or user not found.");
             }
-            var item = await _userService.GetUserById(userId);
-            var count = await _projectService.GetUserProjectCount(item.Id);
+           // var item = await _userService.GetUserById(userId);
+            var count = await _projectService.GetUserProjectCount(userId);
 
             return Ok(count);
         }
@@ -76,7 +91,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             var project = new ProjectDto
             {
-                CreatedById = item.CreatedById,
+                Owner = item.CreatedBy?.UserName,
                 Description = item.Description,
                 IsCompleted = item.IsCompleted,
                 Title = item.Title,
@@ -99,13 +114,16 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         // POST api/<ProjectController>
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ProjectDto value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
 
             var item = new Project
             {
-                CreatedById = value.CreatedById,
+                CreatedById = userId,
                 Description = value.Description,
                 IsCompleted = value.IsCompleted,
                 Title = value.Title,

@@ -6,5 +6,6 @@ namespace Task_Flow.DataAccess.Abstract
 {
     public interface IMessageDal:IEntityRepository<Message>
     {
+        Task<List<Message>> GetMessages();
     }
 }

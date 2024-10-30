@@ -5,7 +5,7 @@ namespace Task_Flow.DataAccess.Abstract
     public interface IProjectService
     {
 
-        Task<List<Project>> GetProjects();
+        Task<List<Project>> GetProjects(string userId);
         Task<Project> GetProjectById(int id);
         Task Add(Project project);
         Task Update(Project project);

@@ -27,9 +27,9 @@ namespace Task_Flow.DataAccess.Concrete
             return await dal.GetById(p => p.Id == id);
         }
 
-        public async Task<List<Project>> GetProjects()
+        public async Task<List<Project>> GetProjects(string userId)
         {
-           return await dal.GetAll();
+           return await dal.GetAll(u=>u.CreatedById==userId);
         }
 
         public async Task Update(Project project)
