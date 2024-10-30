@@ -42,5 +42,22 @@ namespace Task_Flow.DataAccess.Concrete
             var list = await dal.GetAll(p => p.CreatedById == userId);
             return list.Count();    
         }
+
+        public async Task<List<Project>> GetOnGoingProject(string userId)
+        {
+           return await dal.GetAll(u=>u.CreatedById == userId && u.Status!.ToLower()=="on going");
+        }
+
+        public async Task<List<Project>> GetPendingProject(string userId)
+        {
+            return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "pending");
+
+        }
+
+        public async Task<List<Project>> GetCompletedTask(string userId)
+        {
+            return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "completed");
+
+        }
     }
 }

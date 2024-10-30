@@ -11,5 +11,8 @@ namespace Task_Flow.DataAccess.Abstract
         Task Update(Project project);
         Task Delete(Project project);
         Task<int> GetUserProjectCount(string userId);
+        Task<List<Project>> GetOnGoingProject(string userId);
+        Task<List<Project>> GetPendingProject(string userId);
+        Task<List<Project>> GetCompletedTask(string userId);
     }
 }

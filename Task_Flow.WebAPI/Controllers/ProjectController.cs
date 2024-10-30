@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
+using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 
@@ -186,6 +187,37 @@ public async Task<IActionResult> GetExtendedProjectList()
             }
             await _projectService.Delete(item);
             return Ok(item);
+        }
+
+
+        [Authorize]
+        [HttpGet("OnGoingProject")]
+        public async Task<IActionResult> GetOnGoingProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetOnGoingProject(userId);
+            return Ok(projects);
+
+        }
+
+        [Authorize]
+        [HttpGet("PendingProject")]
+        public async Task<IActionResult> GetPendingProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetPendingProject(userId);
+            return Ok(projects);
+
+        }
+
+        [Authorize]
+        [HttpGet("CompletedTask")]
+        public async Task<IActionResult> GetCompletedTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetCompletedTask(userId);
+            return Ok(projects);
+
         }
     }
 }
