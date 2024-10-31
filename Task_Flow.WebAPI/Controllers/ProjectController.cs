@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
+using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 
@@ -14,54 +16,49 @@ namespace Task_Flow.WebAPI.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;
-
+        private readonly TaskFlowDbContext _context;
         private readonly IUserService _userService;
         private readonly ITeamMemberService _teamMemberService;
 
-        public ProjectController(IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService)
+        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService)
         {
             _projectService = projectService;
             _userService = userService;
-            _teamMemberService = teamMemberService; 
+            _teamMemberService = teamMemberService;
+            _context = dbContext;
+        }
+        [Authorize]
+        [HttpGet("ExtendedProjectList")]
+        public async Task<IActionResult> GetExtendedProjectList()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
+
+            var item = await _userService.GetUserById(userId);
+            if (item == null)
+            {
+                return NotFound("User not found.");
+            }
+             
+            var projectList=await _projectService.GetProjects(userId);  
+        var list=  projectList.Select(p => new ExtendedProjectListDto
+                {
+                    Title = p.Title,
+                    TotalTask = p.TaskForUsers.Count, 
+                    CompletedTask = p.TaskForUsers.Count(t => t.Status == "done"), // Tamamlanan görev sayısı
+                    ParticipantsPath = p.TeamMembers
+                        .Select(tm => tm.User.Image) 
+                        .ToList(),
+                    Color = p.Color,
+                }).ToList() ;
+
+            return Ok(list);
         }
 
-     [Authorize]
-[HttpGet("ExtendedProjectList")]
-public async Task<IActionResult> GetExtendedProjectList()
-{
-    var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-    if (string.IsNullOrEmpty(userId))
-    {
-        return Unauthorized("Invalid token or user not found.");
-    }
-
-    var item = await _userService.GetUserById(userId);
-    if (item == null)
-    {
-        return NotFound("User not found.");
-    }
-
-    var projects = await _projectService.GetProjects(userId);
-    if (projects == null || !projects.Any())
-    {
-        return NotFound("No projects found for this user.");
-    }
-
-    var userProjects = projects
-        .Select(p => new ExtendedProjectListDto
-        { 
-            Title = p.Title,
-            TotalTask = 24,
-            CompletedTask = 12,
-            ParticipantsPath = p.TeamMembers?.Where(t => t.User != null && t.User.Image != null)
-                                              .Select(t => t.User.Image)
-                                              .ToList() ?? new List<string>(),
-            Color = p.Color,
-        });
-
-    return Ok(userProjects);
-}
 
 
         [Authorize]
@@ -69,13 +66,13 @@ public async Task<IActionResult> GetExtendedProjectList()
         public async Task<IActionResult> GetUserProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
- 
-           
+
+
             if (userId == null)
             {
                 return Unauthorized("Invalid token or user not found.");
             }
-           // var item = await _userService.GetUserById(userId);
+            // var item = await _userService.GetUserById(userId);
             var count = await _projectService.GetUserProjectCount(userId);
 
             return Ok(count);
@@ -103,13 +100,17 @@ public async Task<IActionResult> GetExtendedProjectList()
         [HttpGet("ProjectTaskCount/{id}")]
         public async Task<IActionResult> GetProjectTaskCount(int id)
         {
-            var item = await _projectService.GetProjectById(id);
+
+            var item= await _context.Projects
+       .Include(p => p.TaskForUsers) 
+       .FirstOrDefaultAsync(p => p.Id == id);
+         //   var item = await _projectService.GetProjectById(id);
             if (item == null)
             {
                 return NotFound();
             }
-            var count=item.TaskForUsers?.Count();
-            
+            var count = item.TaskForUsers?.Count;
+
             return Ok(count);
 
         }
