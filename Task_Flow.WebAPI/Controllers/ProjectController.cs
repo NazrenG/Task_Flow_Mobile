@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
+using Task_Flow.DataAccess.Concrete;
+using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 
@@ -13,54 +16,64 @@ namespace Task_Flow.WebAPI.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;
-
+        private readonly TaskFlowDbContext _context;
         private readonly IUserService _userService;
+        private readonly ITeamMemberService _teamMemberService;
 
-        public ProjectController(IProjectService projectService, IUserService userService)
+        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService)
         {
             _projectService = projectService;
             _userService = userService;
+            _teamMemberService = teamMemberService;
+            _context = dbContext;
         }
-
         [Authorize]
-        [HttpGet("UserProjects")]
-        public async Task<IActionResult> GetUserProjects()
+        [HttpGet("ExtendedProjectList")]
+        public async Task<IActionResult> GetExtendedProjectList()
         {
-
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (userId == null)
+
+            if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Invalid token or user not found.");
             }
+
             var item = await _userService.GetUserById(userId);
-            var projects = await _projectService.GetProjects();
-            var userProjects = projects
-                .Where(p => p.CreatedById == userId)
-                .Select(p => new ProjectDto
+            if (item == null)
+            {
+                return NotFound("User not found.");
+            }
+             
+            var projectList=await _projectService.GetProjects(userId);  
+        var list=  projectList.Select(p => new ExtendedProjectListDto
                 {
-                    CreatedById = p.CreatedById,
-                    Description = p.Description,
-                    IsCompleted = p.IsCompleted,
                     Title = p.Title,
-                });
+                    TotalTask = p.TaskForUsers.Count, 
+                    CompletedTask = p.TaskForUsers.Count(t => t.Status == "done"), // Tamamlanan görev sayısı
+                    ParticipantsPath = p.TeamMembers
+                        .Select(tm => tm.User.Image) 
+                        .ToList(),
+                    Color = p.Color,
+                }).ToList() ;
 
-            return Ok(userProjects);
+            return Ok(list);
         }
-        [Authorize]
 
+
+
+        [Authorize]
         [HttpGet("UserProjectCount")]
         public async Task<IActionResult> GetUserProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
- 
-           
+
+
             if (userId == null)
             {
                 return Unauthorized("Invalid token or user not found.");
             }
-            var item = await _userService.GetUserById(userId);
-            var count = await _projectService.GetUserProjectCount(item.Id);
+            // var item = await _userService.GetUserById(userId);
+            var count = await _projectService.GetUserProjectCount(userId);
 
             return Ok(count);
         }
@@ -76,7 +89,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             var project = new ProjectDto
             {
-                CreatedById = item.CreatedById,
+                Owner = item.CreatedBy?.UserName,
                 Description = item.Description,
                 IsCompleted = item.IsCompleted,
                 Title = item.Title,
@@ -87,21 +100,28 @@ namespace Task_Flow.WebAPI.Controllers
         [HttpGet("ProjectTaskCount/{id}")]
         public async Task<IActionResult> GetProjectTaskCount(int id)
         {
-            var item = await _projectService.GetProjectById(id);
+
+            var item= await _context.Projects
+       .Include(p => p.TaskForUsers) 
+       .FirstOrDefaultAsync(p => p.Id == id);
+         //   var item = await _projectService.GetProjectById(id);
             if (item == null)
             {
                 return NotFound();
             }
-            var count=item.TaskForUsers?.Count();
-            
+            var count = item.TaskForUsers?.Count;
+
             return Ok(count);
 
         }
 
         // POST api/<ProjectController>
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ProjectDto value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
 
             var item = new Project
             {
@@ -171,6 +191,37 @@ namespace Task_Flow.WebAPI.Controllers
             }
             await _projectService.Delete(item);
             return Ok(item);
+        }
+
+
+        [Authorize]
+        [HttpGet("OnGoingProject")]
+        public async Task<IActionResult> GetOnGoingProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetOnGoingProject(userId);
+            return Ok(projects);
+
+        }
+
+        [Authorize]
+        [HttpGet("PendingProject")]
+        public async Task<IActionResult> GetPendingProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetPendingProject(userId);
+            return Ok(projects);
+
+        }
+
+        [Authorize]
+        [HttpGet("CompletedTask")]
+        public async Task<IActionResult> GetCompletedTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetCompletedTask(userId);
+            return Ok(projects);
+
         }
     }
 }

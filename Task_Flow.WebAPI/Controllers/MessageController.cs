@@ -28,11 +28,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return BadRequest("User not authenticated.");
             }
-
-            if (!int.TryParse(userId, out int id))
-            {
-                return BadRequest("Invalid user ID.");
-            }
+ 
 
             var list = await messageService.GetMessages();
             if (list == null) return NotFound();

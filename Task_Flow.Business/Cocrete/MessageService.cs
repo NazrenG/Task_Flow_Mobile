@@ -30,7 +30,7 @@ namespace Task_Flow.Business.Concrete
 
         public async Task<List<Message>> GetMessages()
         {
-            return await messageDal.GetAll();
+            return await messageDal.GetMessages();
         }
 
         public async Task Update(Message message)

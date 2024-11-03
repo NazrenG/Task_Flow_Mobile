@@ -24,6 +24,13 @@ namespace Task_Flow.DataAccess.Concrete
             return await dal.GetAll();
         }
 
+        public async Task<int> SpecialOccupationCount(string occupation)
+        {
+
+            var list = await dal.GetAll();
+          return list.Where(p=>p.UsagePurpose == occupation).ToList().Count();
+        }
+
         public async Task Update(Quiz quiz)
         {
             await  dal.Update(quiz);

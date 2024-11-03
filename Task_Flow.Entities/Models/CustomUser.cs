@@ -14,6 +14,7 @@ namespace Task_Flow.Entities.Models
         public string? Gender { get; set; }
         public bool? IsOnline { get; set; }
         public DateTime? Birthday { get; set; }
+        public DateTime? RegisterDate { get; set; }
         public DateTime? LastLoginDate { get; set; }  
 
         // Navigation properties
@@ -27,7 +28,10 @@ namespace Task_Flow.Entities.Models
         public virtual List<Friend>? Friends { get; set; }
         public virtual List<Friend>? FriendsOf { get; set; }
         public virtual List<Notification>? Notifications { get; set; }
-        public virtual Quiz? Quiz { get; set; }
+        public CustomUser()
+        {
+             RegisterDate = DateTime.UtcNow;    
+        }
 
 
     }

@@ -9,6 +9,8 @@ namespace Task_Flow.Entities.Models
         public string? Description { get; set; }
         public string? CreatedById { get; set; }//UserId
         public bool IsCompleted { get; set; }   
+        public string? Status { get; set; }
+        public string? Color { get; set; }  
         public DateTime CreatedAt { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -19,6 +21,7 @@ namespace Task_Flow.Entities.Models
         public Project()
         {
             CreatedAt = DateTime.Now;
+            Status = "On Going";
         }
 
     }

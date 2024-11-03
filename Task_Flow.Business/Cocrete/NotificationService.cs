@@ -30,7 +30,7 @@ namespace Task_Flow.Business.Concrete
 
         public async Task<List<Notification>> GetNotifications()
         {
-            return await notificationDal.GetAll();
+            return await notificationDal.GetNotifications();
         }
 
         public async Task<int> GetCount()

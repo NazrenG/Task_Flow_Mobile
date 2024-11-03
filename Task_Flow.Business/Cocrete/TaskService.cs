@@ -22,17 +22,31 @@ namespace Task_Flow.DataAccess.Concrete
             await dal.Delete(task);
         }
 
+        public async Task<List<Work>> GetDoneTask(string userId)
+        {
+                return await dal.GetAll(t => t.Status.ToLower() == "done" && t.CreatedById==userId);
+        }
+
+        public async Task<List<Work>> GetInProgressTask(string userId)
+        {
+            return await dal.GetAll(t => t.Status.ToLower() == "in progress" && t.CreatedById == userId);
+        }
+
         public async Task<Work> GetTaskById(int id)
         {
             return await dal.GetById(f => f.Id == id);
         }
 
-        public async Task<List<Work>> GetTasks()
+        public async Task<List<Work>> GetTasks(string userId)
         {
-            return await dal.GetAll();
+            return await dal.GetAll(u=>u.CreatedById==userId);
         }
 
-       
+        public async Task<List<Work>> GetToDoTask(string userId)
+        {
+            return await dal.GetAll(t => t.Status.ToLower() == "to do" && t.CreatedById == userId);
+        }
+
         public async Task Update(Work task)
         {
             await dal.Update(task);

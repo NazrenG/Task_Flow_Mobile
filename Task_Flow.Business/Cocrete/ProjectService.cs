@@ -27,9 +27,11 @@ namespace Task_Flow.DataAccess.Concrete
             return await dal.GetById(p => p.Id == id);
         }
 
-        public async Task<List<Project>> GetProjects()
+        public async Task<List<Project>> GetProjects(string userId)
         {
-           return await dal.GetAll();
+            var items = await dal.GetAllProjects();
+
+           return items.Where(p=>p.CreatedById == userId).ToList();
         }
 
         public async Task Update(Project project)
@@ -39,8 +41,27 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<int> GetUserProjectCount(string userId)
         {
-            var list = await dal.GetAll(p => p.CreatedById == userId);
-            return list.Count();    
+            var items = await dal.GetAllProjects();
+
+            return items.Where(p => p.CreatedById == userId).ToList().Count;
+       
+        }
+
+        public async Task<List<Project>> GetOnGoingProject(string userId)
+        {
+           return await dal.GetAll(u=>u.CreatedById == userId && u.Status!.ToLower()=="on going");
+        }
+
+        public async Task<List<Project>> GetPendingProject(string userId)
+        {
+            return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "pending");
+
+        }
+
+        public async Task<List<Project>> GetCompletedTask(string userId)
+        {
+            return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "completed");
+
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Task_Flow.DataAccess.Abstract
     {
         Task Add(Quiz quiz);    
         Task Update(Quiz quiz); 
-        Task<List<Quiz>> Quizzes(); 
+        Task<List<Quiz>> Quizzes();
+        Task<int> SpecialOccupationCount(string occupation);
     }
 }

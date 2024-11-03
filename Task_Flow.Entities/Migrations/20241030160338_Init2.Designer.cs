@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task_Flow.Entities.Data;
 
@@ -11,9 +12,11 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    partial class TaskFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241030160338_Init2")]
+    partial class Init2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,9 +372,6 @@ namespace Task_Flow.Entities.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Color")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -381,14 +381,8 @@ namespace Task_Flow.Entities.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
@@ -417,14 +411,7 @@ namespace Task_Flow.Entities.Migrations
                     b.Property<string>("UsagePurpose")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Quizzes");
                 });
@@ -668,15 +655,6 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("CreatedBy");
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.Quiz", b =>
-                {
-                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
-                        .WithOne("Quiz")
-                        .HasForeignKey("Task_Flow.Entities.Models.Quiz", "UserId");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Task_Flow.Entities.Models.TaskAssigne", b =>
                 {
                     b.HasOne("Task_Flow.Entities.Models.Work", "TaskForUser")
@@ -758,8 +736,6 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Projects");
-
-                    b.Navigation("Quiz");
 
                     b.Navigation("TaskAssignees");
 

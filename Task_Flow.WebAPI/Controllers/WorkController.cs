@@ -21,15 +21,16 @@ namespace Task_Flow.WebAPI.Controllers
             this.userService = userService;
         }
 
-     
+
 
         // GET: api/<WorkController>
+        [Authorize]
         [HttpGet("UserTasks")]
         public async Task<IEnumerable<WorkDto>> GetUserTasks()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var list = await taskService.GetTasks();
-            var items = list.Where(t=>t.CreatedById==userId).Select(p =>
+            var list = await taskService.GetTasks(userId);
+            var items = list.Select(p =>
             {
                 return new WorkDto
                 {
@@ -67,14 +68,14 @@ namespace Task_Flow.WebAPI.Controllers
             };
             return Ok(work);
         }
-
+        [Authorize]
         [HttpGet("UserTasksCount")]
         public async Task<IActionResult> GetUserTaskCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var item = await taskService.GetTasks();
+            var item = await taskService.GetTasks(userId);
             
-            return Ok(item.Where(t=>t.CreatedById==userId).Count());
+            return Ok(item.Count());
         }
 
         // POST api/<WorkController>
@@ -181,5 +182,46 @@ namespace Task_Flow.WebAPI.Controllers
             await taskService.Delete(item);
             return Ok(item);
         }
+        [Authorize]
+        [HttpGet("DailyTask")]
+        public async Task<IActionResult> GetDailyTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tasks=await taskService.GetTasks(userId);
+            var todayTasks=tasks.OrderBy(t=>t.StartTime).ToList();
+            return Ok(todayTasks);
+
+        }
+
+        [Authorize]
+        [HttpGet("ToDoTask")]
+        public async Task<IActionResult> GetToDoTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tasks = await taskService.GetToDoTask(userId); 
+            return Ok(tasks);
+
+        }
+
+        [Authorize]
+        [HttpGet("InProgressTask")]
+        public async Task<IActionResult> GetInProgressTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tasks = await taskService.GetInProgressTask(userId); 
+            return Ok(tasks);
+
+        }
+
+        [Authorize]
+        [HttpGet("DoneTask")]
+        public async Task<IActionResult> GetDoneTask()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tasks = await taskService.GetDoneTask(userId); 
+            return Ok(tasks);
+
+        }
+
     }
 }
