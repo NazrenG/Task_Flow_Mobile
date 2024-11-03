@@ -10,6 +10,8 @@ namespace Task_Flow.Entities.Models
         public string? CreatedById { get; set; }//UserId
         public bool IsCompleted { get; set; }   
         public DateTime CreatedAt { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public virtual CustomUser? CreatedBy { get; set; }
         public virtual List<Work>? TaskForUsers { get;set; }
         public virtual List<TeamMember>? TeamMembers { get; set; }

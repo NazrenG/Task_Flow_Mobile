@@ -31,11 +31,11 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> Get()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-           if (userId == null)
+            if (userId == null)
             {
                 return BadRequest("User not authenticated.");
             }
-            
+
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == false).Select(p =>
             {
@@ -57,7 +57,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest("User not authenticated.");
             }
 
-            
+
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == false).OrderByDescending(p => p.Id).Take(2).
                 Select(p =>
@@ -106,7 +106,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest("User not authenticated.");
             }
 
-           
+
 
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage)
@@ -129,7 +129,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
- var list = await notificationService.GetNotifications();
+            var list = await notificationService.GetNotifications();
 
             return Ok(list.Where(l => l.UserId == userId && l.IsCalendarMessage == false).Count());
         }
@@ -140,7 +140,7 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetCalendarNotificationCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-          
+
             var list = await notificationService.GetNotifications();
 
             return Ok(list.Where(l => l.UserId == userId && l.IsCalendarMessage == true).Count());

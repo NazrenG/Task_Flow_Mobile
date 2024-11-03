@@ -31,6 +31,9 @@ builder.Services.AddDbContext<TaskFlowDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Configuration.AddJsonFile("SMTP.json", optional: true, reloadOnChange: true);
+
+builder.Services.AddTransient<MailService>();
 
 builder.Services.AddScoped<IUserDal, UserDal>();
 builder.Services.AddScoped<IUserService, UserService>();

@@ -106,6 +106,9 @@ namespace Task_Flow.WebAPI.Controllers
             var item = new Project
             {
                 CreatedById = value.CreatedById,
+                CreatedAt= DateTime.UtcNow, 
+                StartDate=value.StartDate,
+                EndDate=value.EndDate,
                 Description = value.Description,
                 IsCompleted = value.IsCompleted,
                 Title = value.Title,
