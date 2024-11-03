@@ -50,7 +50,10 @@ namespace Task_Flow.DataAccess.Concrete
             return list.Count;
         }
 
-
-       
+        public async Task<bool> CheckUsernameOrEmail(string nameOrEmail)
+        {
+            var users=await dal.GetAll(c=>c.Email==nameOrEmail || c.UserName==nameOrEmail);
+            return users.Any(); 
+        }
     }
 }

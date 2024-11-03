@@ -18,8 +18,7 @@ namespace Task_Flow.WebAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<CustomUser> _userManager;
-        // private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<CustomUser> _userManager; 
         private readonly IConfiguration _configuration;
         private readonly IQuizService _quizService;
         private readonly IUserService _userService;
