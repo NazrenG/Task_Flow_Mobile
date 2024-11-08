@@ -8,9 +8,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Task_Flow.WebAPI.Hubs; 
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -110,7 +108,7 @@ return Ok("Verification code sent");
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Ok(new { Message = "Verification code sent succesfully!", Code = _emailService.sendVerifyMail(value) });
+                return BadRequest("user not found");
             }
             await _hubContext.Clients.All.SendAsync("UserDisconnected", userId);
             var user = await _userService.GetUserById(userId);
