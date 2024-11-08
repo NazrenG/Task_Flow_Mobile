@@ -18,16 +18,16 @@ namespace Task_Flow.WebAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<CustomUser> _userManager; 
+        private readonly UserManager<CustomUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IQuizService _quizService;
         private readonly IUserService _userService;
 
-        public AuthController(UserManager<CustomUser> userManager, IConfiguration configuration,IQuizService quizService,IUserService userService)
+        public AuthController(UserManager<CustomUser> userManager, IConfiguration configuration, IQuizService quizService, IUserService userService)
         {
             _userManager = userManager;
             _quizService = quizService;
-           _userService = userService;  
+            _userService = userService;
             _configuration = configuration;
         }
 
@@ -99,7 +99,9 @@ namespace Task_Flow.WebAPI.Controllers
         [HttpGet("currentUser")]
         public async Task<IActionResult> GetCurrentUserData()
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return NotFound(new { Message = "user not found" });
+            var user = await _userService.GetUserById(userId);
 
             if (user == null)
             {
@@ -109,8 +111,17 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new
             {
                 Username = user.UserName,
+                Firstname = user.Firstname,
+                Fullname = user.Firstname + " " + user.Lastname,
+                Lastname = user.Lastname,
+                Phone = user.PhoneNumber,
+                Gender = user.Gender,
+                Country = user.Country,
+                Birthday = user.Birthday,
                 Email = user.Email,
-                Path = user.Image
+                Path = user.Image,
+                Occupation = user.Occupation,
+
             });
         }
 
