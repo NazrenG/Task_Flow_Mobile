@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
@@ -19,15 +21,17 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IHubContext<ConnectionHub> _hubContext;
         private readonly IUserService _userService;
+        private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
 
-        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, IUserService userService, SignInManager<CustomUser> signInManager)
+        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService)
         {
             _userManager = userManager;
             _configuration = configuration;
             _hubContext = hubContext;
             _userService = userService;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
 
 
@@ -41,32 +45,33 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return Ok(new {Message= "User not authenticated." ,Code=-1});
             }
             var user=await _userService.GetUserById(userId);
             var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, currentPassword);
             if (isPasswordCorrect)
             {
                 await _userManager.ChangePasswordAsync(user,currentPassword, newPassword);
-                return Ok();
+                return Ok(new {Message="Changes Saved!",Code=1});
             }
 
-            return BadRequest("Error");
+            return Ok(new {Message= "Error" ,Code=-1});
 
-        } 
-        [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto value)
+        }
+       
+        [HttpPost("CheckEmail")]
+        public async Task<IActionResult> CheckEmail([FromBody] string value)
         {
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return BadRequest("User not authenticated.");
-            }
-            var user = await _userService.GetUserById(userId);
-            var isCheckUser=await _userService.CheckUsernameOrEmail(value.NameOrEmail);
+         
+            
+            var isCheckUser = await _userService.CheckUsernameOrEmail(value);
             //mail
+            if (isCheckUser)
+            {
+                return Ok(new { Message = "Verification code sent succesfully!", Code = _emailService.sendVerifyMail(value) });
+            }
 
-            return Ok();
+            return Ok(new { Message="Failed to send verification code!",Code=-1});
 
         }
         [HttpGet]

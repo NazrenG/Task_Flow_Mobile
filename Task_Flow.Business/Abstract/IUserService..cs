@@ -6,6 +6,7 @@ namespace Task_Flow.DataAccess.Abstract
     {
         Task<List<CustomUser>> GetUsers();
         Task<CustomUser> GetUserById(string id);
+        Task<List<CustomUser>> GetUserByName(string name);
        Task Add(CustomUser user);
        Task Update(CustomUser user);
        Task Delete(CustomUser user);  

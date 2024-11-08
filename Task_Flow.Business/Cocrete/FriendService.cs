@@ -2,7 +2,7 @@
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
-namespace Task_Flow.Business.Concrete
+namespace Task_Flow.Business.Cocrete
 {
     public class FriendService:IFriendService
     {
