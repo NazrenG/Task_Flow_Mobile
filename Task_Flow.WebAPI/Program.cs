@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Task_Flow.Business.Abstract;
-using Task_Flow.Business.Concrete;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Data;
@@ -31,7 +31,8 @@ builder.Services.AddDbContext<TaskFlowDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Configuration.AddJsonFile("SMTP.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("SMTP.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddTransient<MailService>();
 

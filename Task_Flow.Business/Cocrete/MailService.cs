@@ -1,16 +1,17 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
-namespace Task_Flow.DataAccess.Concrete
+namespace Task_Flow.Business.Cocrete
 {
-    public class MailService
+   public class MailService
     {
+
         private readonly string _host;
         private readonly int _port;
         private readonly string _userName;
@@ -18,10 +19,10 @@ namespace Task_Flow.DataAccess.Concrete
 
         public MailService(IConfiguration configuration)
         {
-            _host = configuration["SmtpHost"];
-            _port = int.Parse(configuration["SmtpPort"]);
-            _userName = configuration["SmtpUserName"];
-            _password = configuration["SmtpPassword"];
+              _host = configuration["SmtpSettings:Host"];
+        _port = int.Parse(configuration["SmtpSettings:Port"]);
+        _userName = configuration["SmtpSettings:Username"];
+        _password = configuration["SmtpSettings:Password"];
         }
 
         public void SendEmail(string recieverMail, string name, string phone, string text)
@@ -140,3 +141,4 @@ namespace Task_Flow.DataAccess.Concrete
 
     }
 }
+

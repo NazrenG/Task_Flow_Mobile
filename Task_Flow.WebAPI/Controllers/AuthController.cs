@@ -31,6 +31,14 @@ namespace Task_Flow.WebAPI.Controllers
             _configuration = configuration;
         }
 
+        [HttpPost("searchedUser")]
+        public async Task<IActionResult>SearchUser(string key)
+        {
+            var users = await _userService.GetUserByName(key);
+           
+
+            return Ok(new {Users=users});
+        }
 
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp(SignUpDto dto)

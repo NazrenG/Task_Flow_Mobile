@@ -52,8 +52,19 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<bool> CheckUsernameOrEmail(string nameOrEmail)
         {
-            var users=await dal.GetAll(c=>c.Email==nameOrEmail || c.UserName==nameOrEmail);
+            var users=await dal.GetAll(c=>c.Email==nameOrEmail );
             return users.Any(); 
+        }
+
+        public async Task<List<CustomUser>> GetUserByName(string name)
+        {
+            var allUsers = await dal.GetAll();
+            var sorted = allUsers
+                .Where(u => u.UserName.Contains(name))
+                .OrderBy(u => !u.UserName.StartsWith(name)) 
+                .ThenBy(u => u.UserName).ToList();
+            return sorted;
+
         }
     }
 }
