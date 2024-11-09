@@ -37,8 +37,7 @@ namespace Task_Flow.WebAPI.Controllers
 
 
 
-
-        // POST api/<ProfileController>
+        [Authorize] 
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] string currentPassword, string newPassword)
         {
