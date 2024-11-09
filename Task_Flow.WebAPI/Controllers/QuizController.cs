@@ -13,10 +13,8 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IQuizService _quizService;
         private readonly static List<string> OccupationList = new List<string>
         {
-            "IT (Programming, Systems)",
-          "Marketing",
-          "Design (Graphic, UI/UX)",
-          "Finance",
+             "IT (Programming, Systems)",
+          "Design (Graphic, UI/UX)", 
           "Human Resources",
           "Software Programming",
           "Backend Developer",
