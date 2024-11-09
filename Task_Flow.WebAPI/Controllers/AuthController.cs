@@ -32,7 +32,7 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         [HttpPost("searchedUser")]
-        public async Task<IActionResult>SearchUser(string key)
+        public async Task<IActionResult>SearchUser([FromBody] string key)
         {
             var users = await _userService.GetUserByName(key);
            
