@@ -123,7 +123,7 @@ namespace Task_Flow.WebAPI.Controllers
 
         [Authorize]
         [HttpPost("EditedProfile")]
-        public async Task<IActionResult> EditProfile([FromForm] UserDto dto, IFormFile file)
+        public async Task<IActionResult> EditProfile([FromBody] UserDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -141,27 +141,51 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return NotFound(new { message = "User not found." });
             }
-             
+
             var temp = dto.Fullname?.Split(" ");
             user.Firstname = temp != null && temp.Length > 0 ? temp[0] : user.Firstname;
             user.Lastname = temp != null && temp.Length > 1 ? temp[1] : user.Lastname;
-             
+
             user.Birthday = dto.Birthday;
             user.Email = dto.Email;
             user.Country = dto.Country;
             user.PhoneNumber = dto.Phone;
             user.Occupation = dto.Occupation;
-            user.Gender = dto.Gender; 
+            user.Gender = dto.Gender;
+
+            await _userService.Update(user);
+            return Ok(new { message = "Edit successful" });
+        }
+
+        [Authorize]
+        [HttpPost("EditedProfileImage")]
+        public async Task<IActionResult> EditProfileImage([FromForm] IFormFile file)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid data provided." });
+            }
+
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var user = await _userService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            } 
             if (file != null)
-            { 
-                var filePath = await _fileService.SaveFile(file);   
+            {
+                var filePath = await _fileService.SaveFile(file);
                 user.Image = filePath;
             }
 
             await _userService.Update(user);
             return Ok(new { message = "Edit successful" });
         }
-
 
     }
 
