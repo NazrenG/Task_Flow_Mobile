@@ -7,7 +7,7 @@
         public string? Phone { get; set; }
         public string? Occupation { get; set; }
         public string? Country { get; set; } 
-        public string? Image { get; set; }
+        public IFormFile? Image { get; set; }
         public string? Gender { get; set; } 
         public DateTime? Birthday { get; set; }
     }

@@ -58,6 +58,11 @@ builder.Services.AddScoped<ITaskAssignDal, TaskAssignDal>();
 builder.Services.AddScoped<ITaskAssignService, TaskAssigneService>();
 builder.Services.AddScoped<INotificationDal, NotificationDal>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationSettingsDal,NotificationSettingDal>();  
+builder.Services.AddScoped<INotificationSettingService, NotificationSettingService>();
+builder.Services.AddScoped<IRecentActivityDal,RecentActivityDal>(); 
+builder.Services.AddScoped<IRecentActivityService, RecentActivityService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 // Identity configuration (only user management, no roles)
 builder.Services.AddIdentity<CustomUser, IdentityRole>()

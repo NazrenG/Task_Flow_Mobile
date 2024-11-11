@@ -28,6 +28,9 @@ namespace Task_Flow.Entities.Models
         public virtual List<Friend>? Friends { get; set; }
         public virtual List<Friend>? FriendsOf { get; set; }
         public virtual List<Notification>? Notifications { get; set; }
+        public virtual List<RecentActivity>? RecentActivities { get; set; }
+
+        public virtual NotificationSetting Setting { get; set; }
         public CustomUser()
         {
              RegisterDate = DateTime.UtcNow;    

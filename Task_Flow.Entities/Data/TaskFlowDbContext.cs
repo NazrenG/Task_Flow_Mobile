@@ -79,6 +79,8 @@ namespace Task_Flow.Entities.Data
         public virtual DbSet<TaskCustomize> TaskCustomizes { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<NotificationSetting> NotificationSettings { get; set; }    
+        public virtual DbSet<RecentActivity> RecentActivities { get; set; } 
 
     }
 }

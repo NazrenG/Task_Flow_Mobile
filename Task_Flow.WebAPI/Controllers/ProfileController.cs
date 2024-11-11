@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs; 
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -23,8 +24,10 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
         private readonly Dictionary<string, string> _verificationCodes = new();
+        private readonly IFileService _fileService;
 
-        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService)
+        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, 
+            IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService,IFileService fileService)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -32,29 +35,30 @@ namespace Task_Flow.WebAPI.Controllers
             _userService = userService;
             _signInManager = signInManager;
             _emailService = emailService;
+            _fileService = fileService;
         }
 
 
 
 
-        [Authorize] 
+        [Authorize]
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] string currentPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto value)
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Ok(new {Message= "User not authenticated." ,Code=-1});
+                return Ok(new { Message = "User not authenticated.", Code = -1 });
             }
             var user = await _userService.GetUserById(userId);
-            var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, currentPassword);
-            if (isPasswordCorrect)
+            var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, value.OldPassword);
+            if (isPasswordCorrect && value.NewPassword==value.ConfirmPassword)
             {
-                await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-                return Ok();
+                await _userManager.ChangePasswordAsync(user, value.OldPassword, value.NewPassword);
+                return Ok(new { Message = "Change password succesfuly" });
             }
 
-            return Ok(new {Message= "Error" ,Code=-1});
+            return Ok(new { Message = "Error", Code = -1 });
 
         }
         [HttpPost("ForgotPassword")]
@@ -69,11 +73,11 @@ namespace Task_Flow.WebAPI.Controllers
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-return Ok("Verification code sent"); 
+            return Ok("Verification code sent");
 
         }
         [HttpPost("verify-code")]//4 reqemli kod duzdurse
-       
+
         public IActionResult VerifyCode(VerifyCodeDto model)
         {
             if (_verificationCodes.TryGetValue(model.Email, out var code) && code == model.Code)
@@ -87,7 +91,7 @@ return Ok("Verification code sent");
         public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return NotFound("User not found");
+            if (user == null) return NotFound(new { message = "User not found" });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
@@ -95,7 +99,7 @@ return Ok("Verification code sent");
             if (result.Succeeded)
             {
                 _verificationCodes.Remove(model.Email);
-                return Ok("Password reset successful");
+                return Ok(new { message = "Password reset successful" });
             }
             return BadRequest(result.Errors);
         }
@@ -107,51 +111,57 @@ return Ok("Verification code sent");
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("user not found");
+                return BadRequest(new { message = "user not found" });
             }
             await _hubContext.Clients.All.SendAsync("UserDisconnected", userId);
             var user = await _userService.GetUserById(userId);
             user.IsOnline = false;
             await _userService.Update(user);
             await _signInManager.SignOutAsync();
-            return Ok("logout succesfuly");
+            return Ok(new { message = "logout succesfuly" });
         }
 
         [Authorize]
         [HttpPost("EditedProfile")]
-        public async Task<IActionResult> EditProfile(UserDto dto)
+        public async Task<IActionResult> EditProfile([FromForm] UserDto dto, IFormFile file)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid data provided.");
+                return BadRequest(new { message = "Invalid data provided." });
             }
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
-
+             
             var temp = dto.Fullname?.Split(" ");
             user.Firstname = temp != null && temp.Length > 0 ? temp[0] : user.Firstname;
             user.Lastname = temp != null && temp.Length > 1 ? temp[1] : user.Lastname;
-
+             
             user.Birthday = dto.Birthday;
             user.Email = dto.Email;
             user.Country = dto.Country;
             user.PhoneNumber = dto.Phone;
             user.Occupation = dto.Occupation;
-            user.Gender = dto.Gender;
-            user.Image = dto.Image;
+            user.Gender = dto.Gender; 
+            if (file != null)
+            { 
+                var filePath = await _fileService.SaveFile(file);   
+                user.Image = filePath;
+            }
+
             await _userService.Update(user);
-            return Ok("Edit successful");
+            return Ok(new { message = "Edit successful" });
         }
+
 
     }
 
