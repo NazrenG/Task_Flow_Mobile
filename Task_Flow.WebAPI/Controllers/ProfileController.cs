@@ -22,7 +22,7 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
-        private readonly Dictionary<string, string> _verificationCodes = new();
+        private readonly Dictionary<string, int> _verificationCodes = new();
 
         public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService)
         {
@@ -63,14 +63,14 @@ namespace Task_Flow.WebAPI.Controllers
         {
             //maili gonderirsen eger dogrudursa true qaytarir
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (isCheckUser) return Ok("find email succesful");
+            if (!isCheckUser) return Ok(new {Result=false,Message= "This Mail Does Not Exist!" });
 
-            var code = new Random().Next(1000, 9999).ToString();
+            var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-return Ok("Verification code sent"); 
+return Ok(new {Result=true,Message= "Verification code sent" }); 
 
         }
         [HttpPost("verify-code")]//4 reqemli kod duzdurse
@@ -79,9 +79,9 @@ return Ok("Verification code sent");
         {
             if (_verificationCodes.TryGetValue(model.Email, out var code) && code == model.Code)
             {
-                return Ok("Code verified");
+                return Ok(new {Result=true,Message= "Code verified" });
             }
-            return BadRequest("Invalid code");
+            return Ok(new {Results=false, Message= "Invalid code" });
         }
 
         [HttpPost("reset-password")]
@@ -96,9 +96,9 @@ return Ok("Verification code sent");
             if (result.Succeeded)
             {
                 _verificationCodes.Remove(model.Email);
-                return Ok("Password reset successful");
+                return Ok(new {Result=true,Message= "Password reset successful" });
             }
-            return BadRequest(result.Errors);
+            return Ok(new { Result = false, Message = result.Errors });
         }
 
         [Authorize]

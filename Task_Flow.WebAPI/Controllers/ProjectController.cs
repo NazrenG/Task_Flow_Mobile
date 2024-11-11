@@ -223,5 +223,20 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(projects);
 
         }
+
+        [Authorize]
+        [HttpGet("ProjectNames")]
+        public async Task<IActionResult> GetProjectNames()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetProjects(userId);
+            var names = new List<string>();
+            foreach (var project in projects) {
+                names.Add(project.Title);
+            }
+            return Ok(new {Names= names });
+        }
+
+
     }
 }
