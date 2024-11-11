@@ -15,14 +15,16 @@ namespace Task_Flow.WebAPI.Controllers
 
         private readonly INotificationService notificationService;
         private readonly IUserService userService;
+        private readonly INotificationSettingService notificationSettingService;
+        private readonly IRecentActivityService recentActivityService;
 
-        public NotificationController(INotificationService notificationService, IUserService userService)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService)
         {
             this.notificationService = notificationService;
             this.userService = userService;
+            this.notificationSettingService = notificationSettingService;
+            this.recentActivityService = recentActivityService;
         }
-
-
 
         [Authorize]
         // GET: api/<NotificationController>
@@ -33,7 +35,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
             var list = await notificationService.GetNotifications();
@@ -54,7 +56,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
 
@@ -78,12 +80,12 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
             if (!int.TryParse(userId, out int id))
             {
-                return BadRequest("Invalid user ID.");
+                return BadRequest(new { message = "Invalid user ID." });
             }
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == true).Select(p =>
@@ -103,7 +105,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
 
@@ -171,5 +173,90 @@ namespace Task_Flow.WebAPI.Controllers
             await notificationService.Delete(item);
             return Ok();
         }
+
+
+        //notification setting 
+        [Authorize]
+        [HttpGet("NotificationSetting")]
+        public async Task<IActionResult> GetNotificationSetting()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+             
+            var item = await notificationSettingService.GetOrCreateNotificationSetting(userId);
+
+            return Ok(new { success = true, message = "notification setting" });
+        } 
+        [Authorize]
+        [HttpPost("UpdatedNotificationSetting")]
+        public async Task<IActionResult> UpdateNotificationSetting(NotificationSettingDto dto)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "User not found" });
+            }
+             
+            var item = await notificationSettingService.GetNotificationSetting(userId);
+
+            if (item == null)
+            {
+                return NotFound(new{message= "Notification settings not found for the user."});
+            }
+             
+            item.DeadlineReminders = dto.DeadlineReminders;
+            item.FriendshipOffers = dto.FriendshipOffers;
+            item.IncomingComments = dto.IncomingComments;
+            item.InternalTeamMessages = dto.InternalTeamMessages;
+            item.NewProjectProposals = dto.NewProjectProposals; 
+            await notificationSettingService.Update(item);
+
+            return Ok(new { success = true, message = "Update successful" });
+        }
+
+
+        //////// Recent Activity ////////
+        ///
+        [Authorize]
+        [HttpGet("RecentActivity")]
+        public async Task<IActionResult> GetRecentActivity()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+
+            var item = await recentActivityService.GetRecentActivities(userId);
+
+            return Ok(new { message = "succesful" });
+        }
+        [Authorize]
+        [HttpPost("NewRecentActivity")]
+
+        public async Task<IActionResult> AddRecentActivity(RecentActivityDto dto)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+            var item = new RecentActivity
+            {
+                UserId = userId,
+                Text = dto.Text,
+                Type = dto.Type,  
+            };
+            await recentActivityService.Add(item);
+            return Ok(new { message = "Activity added successfully" });
+        }
+
     }
 }

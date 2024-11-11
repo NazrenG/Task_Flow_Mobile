@@ -2,8 +2,7 @@
 using Task_Flow.DataAccess.Abstract; 
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+ 
 namespace Task_Flow.WebAPI.Controllers
 {
     [Route("api/[controller]")]

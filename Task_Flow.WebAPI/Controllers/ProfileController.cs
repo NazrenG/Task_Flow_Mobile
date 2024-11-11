@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs; 
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -23,8 +24,10 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
         private readonly Dictionary<string, int> _verificationCodes = new();
+        private readonly IFileService _fileService;
 
-        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService)
+        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, 
+            IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService,IFileService fileService)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -32,30 +35,30 @@ namespace Task_Flow.WebAPI.Controllers
             _userService = userService;
             _signInManager = signInManager;
             _emailService = emailService;
+            _fileService = fileService;
         }
 
 
 
 
-
-        // POST api/<ProfileController>
+        [Authorize]
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] string currentPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto value)
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Ok(new {Message= "User not authenticated." ,Code=-1});
+                return Ok(new { Message = "User not authenticated.", Code = -1 });
             }
             var user = await _userService.GetUserById(userId);
-            var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, currentPassword);
-            if (isPasswordCorrect)
+            var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, value.OldPassword);
+            if (isPasswordCorrect && value.NewPassword==value.ConfirmPassword)
             {
-                await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-                return Ok();
+                await _userManager.ChangePasswordAsync(user, value.OldPassword, value.NewPassword);
+                return Ok(new { Message = "Change password succesfuly" });
             }
 
-            return Ok(new {Message= "Error" ,Code=-1});
+            return Ok(new { Message = "Error", Code = -1 });
 
         }
         [HttpPost("ForgotPassword")]
@@ -74,7 +77,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
 
         }
         [HttpPost("verify-code")]//4 reqemli kod duzdurse
-       
+
         public IActionResult VerifyCode(VerifyCodeDto model)
         {
             if (_verificationCodes.TryGetValue(model.Email, out var code) && code == model.Code)
@@ -88,7 +91,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
         public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return NotFound("User not found");
+            if (user == null) return NotFound(new { message = "User not found" });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
@@ -108,35 +111,35 @@ return Ok(new {Result=true,Message= "Verification code sent" });
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("user not found");
+                return BadRequest(new { message = "user not found" });
             }
             await _hubContext.Clients.All.SendAsync("UserDisconnected", userId);
             var user = await _userService.GetUserById(userId);
             user.IsOnline = false;
             await _userService.Update(user);
             await _signInManager.SignOutAsync();
-            return Ok("logout succesfuly");
+            return Ok(new { message = "logout succesfuly" });
         }
 
         [Authorize]
         [HttpPost("EditedProfile")]
-        public async Task<IActionResult> EditProfile(UserDto dto)
+        public async Task<IActionResult> EditProfile([FromBody] UserDto dto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid data provided.");
+                return BadRequest(new { message = "Invalid data provided." });
             }
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest(new { message = "User not authenticated." });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
 
             var temp = dto.Fullname?.Split(" ");
@@ -149,9 +152,39 @@ return Ok(new {Result=true,Message= "Verification code sent" });
             user.PhoneNumber = dto.Phone;
             user.Occupation = dto.Occupation;
             user.Gender = dto.Gender;
-            user.Image = dto.Image;
+
             await _userService.Update(user);
-            return Ok("Edit successful");
+            return Ok(new { message = "Edit successful" });
+        }
+
+        [Authorize]
+        [HttpPost("EditedProfileImage")]
+        public async Task<IActionResult> EditProfileImage([FromForm] IFormFile file)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid data provided." });
+            }
+
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var user = await _userService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            } 
+            if (file != null)
+            {
+                var filePath = await _fileService.SaveFile(file);
+                user.Image = filePath;
+            }
+
+            await _userService.Update(user);
+            return Ok(new { message = "Edit successful" });
         }
 
     }
