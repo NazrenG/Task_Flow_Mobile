@@ -1,4 +1,5 @@
-﻿using Task_Flow.DataAccess.Abstract;
+﻿using Microsoft.EntityFrameworkCore;
+using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
 namespace Task_Flow.DataAccess.Concrete
@@ -20,6 +21,11 @@ namespace Task_Flow.DataAccess.Concrete
         public async Task Delete(Work task)
         {
             await dal.Delete(task);
+        }
+
+        public async Task<List<Work>> GetByProjectId(int projectId)
+        {
+            return await dal.GetAll(t => t.ProjectId == projectId);
         }
 
         public async Task<List<Work>> GetDoneTask(string userId)
@@ -45,6 +51,11 @@ namespace Task_Flow.DataAccess.Concrete
         public async Task<List<Work>> GetToDoTask(string userId)
         {
             return await dal.GetAll(t => t.Status!.ToLower() == "to do" && t.CreatedById == userId);
+        }
+
+        public async Task<List<int>> GetTaskSummaryByMonthAsync(int projectId,int month,int year)
+        {
+          return await dal.GetTaskSummaryByMonthAsync(projectId,month,year);
         }
 
         public async Task Update(Work task)

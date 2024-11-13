@@ -6,6 +6,9 @@ namespace Task_Flow.DataAccess.Abstract
 {
     public interface IProjectDal : IEntityRepository<Project>
     {
-       public Task<List<Project>> GetAllProjects();
-    }
+        public Task<List<Project>> GetAllProjects();
+
+
+
+        }
 }
