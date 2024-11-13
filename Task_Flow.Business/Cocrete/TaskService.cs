@@ -24,12 +24,12 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Work>> GetDoneTask(string userId)
         {
-                return await dal.GetAll(t => t.Status.ToLower() == "done" && t.CreatedById==userId);
+                return await dal.GetAll(t => t.Status!.ToLower() == "done" && t.CreatedById==userId);
         }
 
         public async Task<List<Work>> GetInProgressTask(string userId)
         {
-            return await dal.GetAll(t => t.Status.ToLower() == "in progress" && t.CreatedById == userId);
+            return await dal.GetAll(t => t.Status!.ToLower() == "in progress" && t.CreatedById == userId);
         }
 
         public async Task<Work> GetTaskById(int id)
@@ -44,7 +44,7 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Work>> GetToDoTask(string userId)
         {
-            return await dal.GetAll(t => t.Status.ToLower() == "to do" && t.CreatedById == userId);
+            return await dal.GetAll(t => t.Status!.ToLower() == "to do" && t.CreatedById == userId);
         }
 
         public async Task Update(Work task)

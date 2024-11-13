@@ -26,9 +26,14 @@ namespace Task_Flow.WebAPI.Controllers
         // GET: api/<WorkController>
         [Authorize]
         [HttpGet("UserTasks")]
-        public async Task<IEnumerable<WorkDto>> GetUserTasks()
+        public async Task<IActionResult> GetUserTasks()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
             var list = await taskService.GetTasks(userId);
             var items = list.Select(p =>
             {
@@ -41,51 +46,64 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     ProjectId = p.ProjectId,
+                    StartDate=p.StartTime,
                 };
             });
-            return items;
+            return Ok(new {message="succesfull"});
         }
 
 
-        // GET api/<WorkController>/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
-        {
-            var item = await taskService.GetTaskById(id);
-            if (item == null)
-            {
-                return NotFound();
-            }
-            var work = new WorkDto
-            {
-                CreatedById = item.CreatedById,
-                Description = item.Description,
-                Deadline = item.Deadline,
-                Priority = item.Priority,
-                Status = item.Status,
-                Title = item.Title,
-                ProjectId = item.ProjectId,
-            };
-            return Ok(work);
-        }
+        //// GET api/<WorkController>/5
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> Get(int id)
+        //{
+        //    var item = await taskService.GetTaskById(id);
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    var work = new WorkDto
+        //    {
+        //        CreatedById = item.CreatedById,
+        //        Description = item.Description,
+        //        Deadline = item.Deadline,
+        //        Priority = item.Priority,
+        //        Status = item.Status,
+        //        Title = item.Title,
+        //        ProjectId = item.ProjectId,
+        //    };
+        //    return Ok(work);
+        //}
         [Authorize]
         [HttpGet("UserTasksCount")]
         public async Task<IActionResult> GetUserTaskCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
             var item = await taskService.GetTasks(userId);
             
             return Ok(item.Count());
         }
 
         // POST api/<WorkController>
-        [HttpPost]
+        [Authorize]
+        [HttpPost("NewTask")]
         public async Task<IActionResult> Post([FromBody] WorkDto value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
 
             var item = new Work
             {
-                CreatedById = value.CreatedById,
+                CreatedById = userId,
                 Description = value.Description,
                 Deadline = value.Deadline,
                 Priority = value.Priority,
@@ -97,78 +115,78 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(item);
         }
 
-        // PUT api/<WorkController>/5
-        [HttpPut("ChangeTitle/{id}")]
-        public async Task<IActionResult> PutTitle(int id, [FromBody] string value)
-        {
-            var item = await taskService.GetTaskById(id);
+        //// PUT api/<WorkController>/5
+        //[HttpPut("ChangeTitle/{id}")]
+        //public async Task<IActionResult> PutTitle(int id, [FromBody] string value)
+        //{
+        //    var item = await taskService.GetTaskById(id);
 
-            if (item == null)
-            {
-                return NotFound();
-            } 
-            //item.Description = value.Description;
-            //item.Deadline = value.Deadline;
-            //   item.Priority = value.Priority;
-            //item.Status = value.Status;
-            item.Title = value; 
-            await taskService.Update(item);
-            return Ok();
-        }
-        [HttpPut("ChangeDescription/{id}")]
-        public async Task<IActionResult> PutDescription(int id, [FromBody] string value)
-        {
-            var item = await taskService.GetTaskById(id);
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    } 
+        //    //item.Description = value.Description;
+        //    //item.Deadline = value.Deadline;
+        //    //   item.Priority = value.Priority;
+        //    //item.Status = value.Status;
+        //    item.Title = value; 
+        //    await taskService.Update(item);
+        //    return Ok();
+        //}
+        //[HttpPut("ChangeDescription/{id}")]
+        //public async Task<IActionResult> PutDescription(int id, [FromBody] string value)
+        //{
+        //    var item = await taskService.GetTaskById(id);
 
-            if (item == null)
-            {
-                return NotFound();
-            }
-            item.Description = value; 
-            await taskService.Update(item);
-            return Ok();
-        }
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    item.Description = value; 
+        //    await taskService.Update(item);
+        //    return Ok();
+        //}
 
-        [HttpPut("ChangeDeadLine/{id}")]
-        public async Task<IActionResult> PutDeadLine(int id, [FromBody] DateTime value)
-        {
-            var item = await taskService.GetTaskById(id);
+        //[HttpPut("ChangeDeadLine/{id}")]
+        //public async Task<IActionResult> PutDeadLine(int id, [FromBody] DateTime value)
+        //{
+        //    var item = await taskService.GetTaskById(id);
 
-            if (item == null)
-            {
-                return NotFound();
-            } 
-            item.Deadline = value; 
-            await taskService.Update(item);
-            return Ok();
-        }
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    } 
+        //    item.Deadline = value; 
+        //    await taskService.Update(item);
+        //    return Ok();
+        //}
 
-        [HttpPut("ChangeStatus/{id}")]
-        public async Task<IActionResult> PutStatus(int id, [FromBody] string value)
-        {
-            var item = await taskService.GetTaskById(id);
+        //[HttpPut("ChangeStatus/{id}")]
+        //public async Task<IActionResult> PutStatus(int id, [FromBody] string value)
+        //{
+        //    var item = await taskService.GetTaskById(id);
 
-            if (item == null)
-            {
-                return NotFound();
-            } 
-            item.Status = value; 
-            await taskService.Update(item);
-            return Ok();
-        }
-        [HttpPut("ChangePriority/{id}")]
-        public async Task<IActionResult> PutPriority(int id, [FromBody] string value)
-        {
-            var item = await taskService.GetTaskById(id);
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    } 
+        //    item.Status = value; 
+        //    await taskService.Update(item);
+        //    return Ok();
+        //}
+        //[HttpPut("ChangePriority/{id}")]
+        //public async Task<IActionResult> PutPriority(int id, [FromBody] string value)
+        //{
+        //    var item = await taskService.GetTaskById(id);
 
-            if (item == null)
-            {
-                return NotFound();
-            }
-              item.Priority = value; 
-            await taskService.Update(item);
-            return Ok();
-        }
+        //    if (item == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //      item.Priority = value; 
+        //    await taskService.Update(item);
+        //    return Ok();
+        //}
 
         // DELETE api/<WorkController>/5
         [HttpDelete("{id}")]
@@ -188,6 +206,10 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var tasks=await taskService.GetTasks(userId);
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
             var todayTasks=tasks.Where(d=>d.Deadline.Date==DateTime.Now.Date).OrderBy(t=>t.StartTime).ToList();
             return Ok(todayTasks);
 
@@ -198,8 +220,25 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetToDoTask()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
             var tasks = await taskService.GetToDoTask(userId); 
             return Ok(tasks);
+
+        }
+        [Authorize]
+        [HttpGet("ToDoTaskCount")]
+        public async Task<IActionResult> GetToDoTaskCount()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var tasks = await taskService.GetToDoTask(userId);
+            return Ok(tasks.Count);
 
         }
 
@@ -208,8 +247,25 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetInProgressTask()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
             var tasks = await taskService.GetInProgressTask(userId); 
             return Ok(tasks);
+
+        }
+        [Authorize]
+        [HttpGet("InProgressTaskCount")]
+        public async Task<IActionResult> GetInProgressTaskCount()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var tasks = await taskService.GetInProgressTask(userId);
+            return Ok(tasks.Count);
 
         }
 
@@ -218,8 +274,25 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetDoneTask()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
             var tasks = await taskService.GetDoneTask(userId); 
             return Ok(tasks);
+
+        }
+        [Authorize]
+        [HttpGet("DoneTaskCount")]
+        public async Task<IActionResult> GetDoneTaskCount()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var tasks = await taskService.GetDoneTask(userId);
+            return Ok(tasks.Count);
 
         }
 
