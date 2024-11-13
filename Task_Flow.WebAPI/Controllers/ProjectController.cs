@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
@@ -18,14 +19,16 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IProjectService _projectService;
         private readonly TaskFlowDbContext _context;
         private readonly IUserService _userService;
+        private readonly ITaskService _taskService;
         private readonly ITeamMemberService _teamMemberService;
 
-        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService)
+        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService,ITaskService taskService)
         {
             _projectService = projectService;
             _userService = userService;
             _teamMemberService = teamMemberService;
             _context = dbContext;
+            _taskService= taskService;
         }
         [Authorize]
         [HttpGet("ExtendedProjectList")]
@@ -237,6 +240,38 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new {Names= names });
         }
 
+        [Authorize]
+
+        [HttpPost("TasksDependingMonths")]
+
+        public async Task<IActionResult> GetTasksForChart([FromBody] string projectName)
+        {
+
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            List<string> months = new List<string>();
+            DateTime currentDate = DateTime.Now;
+            var completedTasks = new List<int>();
+            var onGoingTasks=new List<int>();
+            var year = DateTime.UtcNow.Year;
+
+            var project =await _projectService.GetProjectByName(userId, projectName);
+
+            for (int i = 0; i < 6; i++)
+            {
+                int monthIndex = (currentDate.Month  - i + 12) % 12;
+                string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthIndex + 1);
+               var data=await _taskService.GetTaskSummaryByMonthAsync(project.Id, monthIndex,year);
+                months.Insert(0, monthName);
+                completedTasks.Add(data[0]);
+                onGoingTasks.Add(data[1]);
+                if (monthName == "January") year--;
+            }
+
+            
+
+
+            return Ok(new {Complated=completedTasks,OnGoing=onGoingTasks});
+        }
 
     }
 }

@@ -63,5 +63,12 @@ namespace Task_Flow.DataAccess.Concrete
             return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "completed");
 
         }
+
+        public async Task<Project> GetProjectByName(string userId,string projectName)
+        {
+            return await dal.GetById(u => u.CreatedById==userId &&u.Title.ToLower() == projectName.ToLower());
+            
+        }
+
     }
 }

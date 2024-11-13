@@ -6,5 +6,6 @@ namespace Task_Flow.DataAccess.Abstract
 {
     public interface ITaskDal : IEntityRepository<Work>
     {
+        public Task<List<int>> GetTaskSummaryByMonthAsync(int projectId,int month,int year);
     }
 }
