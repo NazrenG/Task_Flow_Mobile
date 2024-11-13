@@ -2,7 +2,7 @@
 {
     public class VerifyCodeDto
     {
-        public string Code { get; set; }
+        public int Code { get; set; }
         public string Email { get; set; }
     }
 }

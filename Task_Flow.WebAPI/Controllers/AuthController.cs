@@ -61,7 +61,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return Ok(new { Status = "Success", Message = "User created successfully!" });
             }
 
-            return BadRequest(new { Status = "Error", Message = "User creation failed!", Errors = result.Errors });
+            return Ok(new { Status = "Error", Message = "User creation failed!", Errors = result.Errors });
         }
 
         [HttpPost("signin")]
