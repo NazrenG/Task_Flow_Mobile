@@ -4,11 +4,11 @@ using Task_Flow.Entities.Models;
 
 namespace Task_Flow.Entities.Data
 {
-    public class TaskFlowDbContext:IdentityDbContext<CustomUser>
+    public class TaskFlowDbContext : IdentityDbContext<CustomUser>
     {
-        public TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> options):base(options) 
+        public TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> options) : base(options)
         {
-            
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,11 +30,23 @@ namespace Task_Flow.Entities.Data
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<RequestNotification>()
+                .HasOne(m => m.Receiver)
+                .WithMany(u => u.RequestNotificationsReceiver)
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<RequestNotification>()
+         .HasOne(m => m.Sender)
+         .WithMany(u => u.RequestNotificationsSender)
+         .HasForeignKey(m => m.SenderId)
+         .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Receiver)
                 .WithMany(u => u.MessagesReceiver)
                 .HasForeignKey(m => m.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.Entity<Work>()
                 .HasOne(t => t.CreatedBy)
@@ -78,9 +90,9 @@ namespace Task_Flow.Entities.Data
         public virtual DbSet<TaskAssigne> TaskAssignes { get; set; }
         public virtual DbSet<TaskCustomize> TaskCustomizes { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
+        public virtual DbSet<RequestNotification> RequestNotifications { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
-        public virtual DbSet<NotificationSetting> NotificationSettings { get; set; }    
-        public virtual DbSet<RecentActivity> RecentActivities { get; set; } 
-
+        public virtual DbSet<NotificationSetting> NotificationSettings { get; set; }
+        public virtual DbSet<RecentActivity> RecentActivities { get; set; }
     }
 }

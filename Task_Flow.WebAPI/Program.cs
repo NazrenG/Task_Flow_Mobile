@@ -35,6 +35,7 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnCh
     .AddJsonFile("SMTP.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddTransient<MailService>();
+builder.Services.AddHostedService<ReminderService>();
 
 builder.Services.AddScoped<IUserDal, UserDal>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -63,6 +64,8 @@ builder.Services.AddScoped<INotificationSettingService, NotificationSettingServi
 builder.Services.AddScoped<IRecentActivityDal,RecentActivityDal>(); 
 builder.Services.AddScoped<IRecentActivityService, RecentActivityService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IRequestNotificationDal, RequestNotificationDal>();
+builder.Services.AddScoped<IRequestNotificationService, RequestNotificationService>();
 
 // Identity configuration (only user management, no roles)
 builder.Services.AddIdentity<CustomUser, IdentityRole>()
@@ -114,6 +117,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers(); 
 app.MapHub<ConnectionHub>("/connect");
+
 app.Run();

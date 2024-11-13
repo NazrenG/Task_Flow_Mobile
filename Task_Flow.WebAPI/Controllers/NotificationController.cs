@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
+using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 
@@ -17,13 +19,17 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService userService;
         private readonly INotificationSettingService notificationSettingService;
         private readonly IRecentActivityService recentActivityService;
+        private readonly IRequestNotificationService requestNotificationService;
+        private readonly UserManager<CustomUser> _userManager;
 
-        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager)
         {
             this.notificationService = notificationService;
             this.userService = userService;
             this.notificationSettingService = notificationSettingService;
             this.recentActivityService = recentActivityService;
+            this.requestNotificationService = requestNotificationService;
+            _userManager = userManager;
         }
 
         [Authorize]
@@ -38,13 +44,14 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
 
-            var list = await notificationService.GetNotifications();
-            var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == false).Select(p =>
+            var list = await requestNotificationService.GetRequestNotifications(userId);
+            var items = list.Where(i => i.IsAccepted==false).Select(p =>
             {
                 return new
                 {
                     Text = p.Text,
-                    Username = p.User?.UserName,
+                    Username = p.Sender?.UserName,
+                    Path = p.Sender.Image,
                 };
             });
             return Ok(items);
@@ -59,15 +66,15 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
 
-
-            var list = await notificationService.GetNotifications();
-            var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == false).OrderByDescending(p => p.Id).Take(2).
+            var list = await requestNotificationService.GetRequestNotifications(userId);
+            var items = list.Where(i => i.IsAccepted == false).OrderByDescending(p => p.Id).Take(2).
                 Select(p =>
             {
                 return new
                 {
                     Text = p.Text,
-                    Username = p.User?.UserName,
+                    Username = p.Sender?.UserName,
+                    Path = p.Sender.Image,
                 };
             });
             return Ok(items);
@@ -131,9 +138,9 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var list = await notificationService.GetNotifications();
+            var list = await requestNotificationService.GetRequestNotifications(userId);
 
-            return Ok(list.Where(l => l.UserId == userId && l.IsCalendarMessage == false).Count());
+            return Ok(list.Where(l => l.IsAccepted==false).Count());
         }
 
         [Authorize]
@@ -233,9 +240,15 @@ namespace Task_Flow.WebAPI.Controllers
                 return Unauthorized(new { message = "user not found" });
             }
 
-            var item = await recentActivityService.GetRecentActivities(userId);
+            var items = await recentActivityService.GetRecentActivities(userId);
+            var list = items.Select(l => new RecentActivityDto
+            {
+                Text = l.Text,
+                Type = l.Type,
+                Created=l.Created,
+            });
 
-            return Ok(new { message = "succesful" });
+            return Ok(list);
         }
         [Authorize]
         [HttpPost("NewRecentActivity")]
@@ -256,6 +269,72 @@ namespace Task_Flow.WebAPI.Controllers
             };
             await recentActivityService.Add(item);
             return Ok(new { message = "Activity added successfully" });
+        }
+
+
+        // Bildirimleri Getirme
+        [Authorize]
+        [HttpGet("RequestNotification")]
+        public async Task<IActionResult> GetRequestNotification()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+
+            var items = await requestNotificationService.GetRequestNotifications(userId);
+            var onlyNotAccepted=items.Where(t=>t.IsAccepted==false).ToList();
+            var list = items.Select(l => new RequestNotificationDto
+            {
+                Text = l.Text,
+                SenderId = l.SenderId,
+                ReceiverEmail = l.Receiver.Email, 
+                IsAccepted= l.IsAccepted,   
+              
+            });
+
+            return Ok(list);
+        }
+
+        // request notification
+        [Authorize]
+        [HttpPost("NewRequestNotification")]
+        public async Task<IActionResult> AddRequestNotification(RequestNotificationDto dto)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+
+            var receiverUser = await _userManager.FindByEmailAsync(dto.ReceiverEmail);
+            if (receiverUser == null)
+            {
+                return BadRequest(new { message = "Receiver not found" });
+            }
+
+            var item = new RequestNotification
+            {
+                Text = dto.Text,
+                SenderId = userId,
+                ReceiverId = receiverUser.Id,  
+                IsAccepted=dto.IsAccepted,
+            };
+
+            await requestNotificationService.Add(item);
+
+            return Ok(new
+            {
+                message = "Activity added successfully",
+                data = new RequestNotificationDto
+                {
+                    Text = item.Text,
+                   // SenderId = item.SenderId,
+                    ReceiverEmail = receiverUser.Email, 
+                }
+            });
         }
 
     }

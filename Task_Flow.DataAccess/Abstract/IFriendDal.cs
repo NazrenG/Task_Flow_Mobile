@@ -6,5 +6,6 @@ namespace Task_Flow.DataAccess.Abstract
 {
     public interface IFriendDal : IEntityRepository<Friend>
     {
+        Task<List<Friend>> GetAllFriends(string userId);
     }
 }

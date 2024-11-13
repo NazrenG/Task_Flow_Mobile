@@ -2,7 +2,11 @@
 {
     public class FriendDto
     {
-        public string? UserId { get; set; }
-        public string? UserFriendId { get; set; }
+        public string? FriendName { get; set; }
+        public string? FriendOccupation { get; set; }
+        public string? FriendPhone { get; set; }
+        public string? FriendEmail { get; set; }
+        public string? FriendPhoto { get; set; }
+        public bool? IsOnline { get; set; }
     }
 }

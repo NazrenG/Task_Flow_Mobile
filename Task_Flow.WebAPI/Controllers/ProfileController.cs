@@ -26,8 +26,8 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly Dictionary<string, string> _verificationCodes = new();
         private readonly IFileService _fileService;
 
-        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext, 
-            IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService,IFileService fileService)
+        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext,
+            IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService, IFileService fileService)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -38,7 +38,18 @@ namespace Task_Flow.WebAPI.Controllers
             _fileService = fileService;
         }
 
+        [HttpGet("{email}")]
+        public async Task<IActionResult> GetUserProfile(string email)
+        { 
+            var user = await _userManager.FindByEmailAsync(email);
 
+            if (user == null)
+            {
+                return NotFound("Kullanıcı bulunamadı.");
+            }
+
+            return Ok(user);
+        }
 
 
         [Authorize]
@@ -52,7 +63,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             var user = await _userService.GetUserById(userId);
             var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, value.OldPassword);
-            if (isPasswordCorrect && value.NewPassword==value.ConfirmPassword)
+            if (isPasswordCorrect && value.NewPassword == value.ConfirmPassword)
             {
                 await _userManager.ChangePasswordAsync(user, value.OldPassword, value.NewPassword);
                 return Ok(new { Message = "Change password succesfuly" });
@@ -105,21 +116,29 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("Logout")]
+        [HttpGet("logout")]
         public async Task<IActionResult> Logout()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "user not found" });
+                return BadRequest(new { message = "User not found" });
             }
-            await _hubContext.Clients.All.SendAsync("UserDisconnected", userId);
+
             var user = await _userService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
             user.IsOnline = false;
             await _userService.Update(user);
             await _signInManager.SignOutAsync();
-            return Ok(new { message = "logout succesfuly" });
+            await _hubContext.Clients.All.SendAsync("UserDisconnected", user.UserName);
+
+            return Ok(new { message = "Logout successful" });
         }
+
 
         [Authorize]
         [HttpPost("EditedProfile")]
@@ -176,7 +195,7 @@ namespace Task_Flow.WebAPI.Controllers
             if (user == null)
             {
                 return NotFound(new { message = "User not found." });
-            } 
+            }
             if (file != null)
             {
                 var filePath = await _fileService.SaveFile(file);
@@ -185,6 +204,35 @@ namespace Task_Flow.WebAPI.Controllers
 
             await _userService.Update(user);
             return Ok(new { message = "Edit successful" });
+        }
+
+        [Authorize]
+        [HttpPost("AddingOccupationDuringQuiz")]
+
+        public async Task<IActionResult> AddOccupationDuringQuiz([FromBody] UserDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid data provided." });
+            }
+
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var user = await _userService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+          
+            user.Occupation = dto.Occupation; 
+
+            await _userService.Update(user);
+            return Ok(new { message = "Add occupation successful" });
         }
 
     }

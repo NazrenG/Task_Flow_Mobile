@@ -28,9 +28,9 @@ namespace Task_Flow.Business.Cocrete
             return await dal.GetById(f => f.Id == id);
         }
 
-        public async Task<List<Friend>> GetFriends()
+        public async Task<List<Friend>> GetFriends(string userId)
         {
-            return await dal.GetAll();
+            return await dal.GetAllFriends(userId);
         }
 
         public async Task Update(Friend friend)

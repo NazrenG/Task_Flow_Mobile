@@ -4,7 +4,7 @@ namespace Task_Flow.Business.Abstract
 {
     public interface IFriendService
     {
-        Task<List<Friend>> GetFriends();
+        Task<List<Friend>> GetFriends(string userId);
         Task<Friend> GetFriendsById(int id);
         Task Add(Friend friend);
         Task Update(Friend friend);

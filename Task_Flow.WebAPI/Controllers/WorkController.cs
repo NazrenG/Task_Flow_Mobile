@@ -188,7 +188,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var tasks=await taskService.GetTasks(userId);
-            var todayTasks=tasks.OrderBy(t=>t.StartTime).ToList();
+            var todayTasks=tasks.Where(d=>d.Deadline.Date==DateTime.Now.Date).OrderBy(t=>t.StartTime).ToList();
             return Ok(todayTasks);
 
         }
