@@ -31,6 +31,7 @@ namespace Task_Flow.Entities.Models
         public virtual List<RecentActivity>? RecentActivities { get; set; }
         public virtual List<RequestNotification> RequestNotificationsSender { get; set; }
         public virtual List<RequestNotification> RequestNotificationsReceiver { get; set; }
+        public virtual List<UserTask> UserTasks { get; set; }
 
         public virtual NotificationSetting Setting { get; set; }
         public CustomUser()

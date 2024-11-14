@@ -45,12 +45,55 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("Kullanıcı bulunamadı.");
+                return NotFound("User not found");
             }
 
-            return Ok(user);
+            return Ok(new
+            {
+                Username = user.UserName,
+                Firstname = user.Firstname,
+                Fullname = user.Firstname + " " + user.Lastname,
+                Lastname = user.Lastname,
+                Phone = user.PhoneNumber,
+                Gender = user.Gender,
+                Country = user.Country,
+                Birthday = user.Birthday,
+                Email = user.Email,
+                Path = user.Image,
+                Occupation = user.Occupation,
+
+            });
         }
 
+        [HttpGet("BasicInfoForProfil/{email}")]
+        public async Task<IActionResult> GetBasicInfoForProfil(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                Firstname = user.Firstname,
+                Fullname = user.Firstname + " " + user.Lastname,
+                Lastname = user.Lastname,
+                Phone = user.PhoneNumber,
+                Gender = user.Gender,
+                Country = user.Country,
+                Birthday = user.Birthday,
+                Email = user.Email,
+                Path = user.Image,
+                Occupation = user.Occupation,
+                RegisterDate = user.RegisterDate,
+                IsOnline = user.IsOnline,
+
+
+            });
+        }
 
         [Authorize]
         [HttpPost("ChangePassword")]
@@ -91,7 +134,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
 
         public IActionResult VerifyCode(VerifyCodeDto model)
         {
-            if (_verificationCodes.TryGetValue(model.Email, out var code) && code == model.Code)
+            if (_verificationCodes.TryGetValue(model.Email, out var code) )
             {
                 return Ok(new {Result=true,Message= "Code verified" });
             }

@@ -4,7 +4,7 @@ using Task_Flow.Entities.Models;
 
 namespace Task_Flow.DataAccess.Abstract
 {
-    public interface ITaskAssignDal : IEntityRepository<TaskAssigne>
+    public interface IUserTaskDal : IEntityRepository<UserTask>
     {
     }
 }

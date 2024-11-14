@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task_Flow.Entities.Data;
 
@@ -11,9 +12,11 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    partial class TaskFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114155426_Init09")]
+    partial class Init09
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -438,37 +441,6 @@ namespace Task_Flow.Entities.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.ProjectActivity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ProjectActivities");
-                });
-
             modelBuilder.Entity("Task_Flow.Entities.Models.Quiz", b =>
                 {
                     b.Property<int>("Id")
@@ -835,25 +807,6 @@ namespace Task_Flow.Entities.Migrations
                         .HasForeignKey("CreatedById");
 
                     b.Navigation("CreatedBy");
-                });
-
-            modelBuilder.Entity("Task_Flow.Entities.Models.ProjectActivity", b =>
-                {
-                    b.HasOne("Task_Flow.Entities.Models.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.RecentActivity", b =>

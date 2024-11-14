@@ -26,6 +26,10 @@ namespace Task_Flow.Entities.Models
         public virtual List<Comment>? Comments { get; set; } 
         public virtual List<TaskAssigne>? TaskAssignees { get; set; } 
         public virtual List<TaskCustomize>? TaskCustomizes { get; set; }
-        
+        public Work()
+        {
+            StartTime= DateTime.Now;    
+        }
+
     }
 }

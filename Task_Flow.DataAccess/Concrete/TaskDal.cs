@@ -15,6 +15,12 @@ namespace Task_Flow.DataAccess.Concrete
             _context = context;
         }
 
+        public async Task<List<Work>> GetAllTask()
+        {
+          return await _context.Works.Include(p=>p.Project).ToListAsync();  
+
+        }
+
         public async Task<List<int>> GetTaskSummaryByMonthAsync(int projectId, int month, int year)
         {
             var startDate = new DateTime(year, month, 1);
