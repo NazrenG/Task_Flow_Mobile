@@ -5,9 +5,9 @@ using TaskFlow.Core.DataAccess.EntityFramework;
 
 namespace Task_Flow.DataAccess.Concrete
 {
-    public class TaskAssignDal : EFEntityBaseRepository<TaskFlowDbContext, TaskAssigne>, ITaskAssignDal
+    public class UserTaskDal : EFEntityBaseRepository<TaskFlowDbContext, UserTask>, IUserTaskDal
     {
-        public TaskAssignDal(TaskFlowDbContext context) : base(context)
+        public UserTaskDal(TaskFlowDbContext context) : base(context)
         {
         }
     }

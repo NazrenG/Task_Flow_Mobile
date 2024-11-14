@@ -246,7 +246,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Text = l.Text,
                 Type = l.Type,
                 Created=l.Created,
-            });
+            }).ToList();
 
             return Ok(list);
         }

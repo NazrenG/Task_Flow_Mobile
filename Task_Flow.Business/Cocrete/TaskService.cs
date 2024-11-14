@@ -45,7 +45,8 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Work>> GetTasks(string userId)
         {
-            return await dal.GetAll(u=>u.CreatedById==userId);
+            var list = await dal.GetAllTask();
+            return  list.Where(p=>p.CreatedById == userId).ToList();   
         }
 
         public async Task<List<Work>> GetToDoTask(string userId)
