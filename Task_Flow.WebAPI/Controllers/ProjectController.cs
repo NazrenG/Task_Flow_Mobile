@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Data;
@@ -21,14 +22,15 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly ITaskService _taskService;
         private readonly ITeamMemberService _teamMemberService;
-
-        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService,ITaskService taskService)
+        private readonly IProjectActivityService _projectActivity;
+        public ProjectController(TaskFlowDbContext dbContext,IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService,ITaskService taskService,IProjectActivityService productActivity)
         {
             _projectService = projectService;
             _userService = userService;
             _teamMemberService = teamMemberService;
             _context = dbContext;
             _taskService= taskService;
+            _projectActivity = productActivity;
         }
         [Authorize]
         [HttpGet("ExtendedProjectList")]
@@ -137,6 +139,8 @@ namespace Task_Flow.WebAPI.Controllers
                 Title = value.Title,
             };
             await _projectService.Add(item);
+            var projectId = await _projectService.GetProjectByName(userId,value.Title);
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = item.Id, Text = "created a new Project named: " + item.Title });
             return Ok(item);
         }
 
@@ -153,6 +157,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             item.Title = value;
             await _projectService.Update(item);
+            //await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId =id, Text = "created a new Project named: " + item.Title });
             return Ok();
         }
 
@@ -266,8 +271,9 @@ namespace Task_Flow.WebAPI.Controllers
                 onGoingTasks.Add(data[1]);
                 if (monthName == "January") year--;
             }
+            completedTasks.Reverse();
+            onGoingTasks.Reverse();
 
-            
 
 
             return Ok(new {Complated=completedTasks,OnGoing=onGoingTasks});

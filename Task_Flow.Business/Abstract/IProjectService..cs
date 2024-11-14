@@ -15,6 +15,6 @@ namespace Task_Flow.DataAccess.Abstract
         Task<List<Project>> GetPendingProject(string userId);
         Task<List<Project>> GetCompletedTask(string userId);
 
-        public Task<Project> GetProjectByName(string userId, string projectName);
+         Task<Project> GetProjectByName(string userId, string projectName);
     }
 }

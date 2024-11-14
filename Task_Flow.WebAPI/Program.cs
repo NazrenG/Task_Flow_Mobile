@@ -66,6 +66,8 @@ builder.Services.AddScoped<IRecentActivityService, RecentActivityService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IRequestNotificationDal, RequestNotificationDal>();
 builder.Services.AddScoped<IRequestNotificationService, RequestNotificationService>();
+builder.Services.AddScoped<IProjectActivityDal, ProjectActivityDal>();
+builder.Services.AddScoped<IProjectActivityService, ProjectActivityService>();
 
 // Identity configuration (only user management, no roles)
 builder.Services.AddIdentity<CustomUser, IdentityRole>()
