@@ -7,6 +7,7 @@ using Task_Flow.Entities.Models;
 
 namespace Task_Flow.WebAPI.Hubs
 {
+        [Authorize]
     public class ConnectionHub : Hub
     {
         private readonly IUserService _userService;
@@ -34,10 +35,9 @@ namespace Task_Flow.WebAPI.Hubs
                
             }
         }
-        [Authorize]
         public override async Task OnConnectedAsync()
         {
-            var user = await _userManager.GetUserAsync(_contextAccessor.HttpContext.User);
+            var user = await _userManager.GetUserAsync(Context.User);
             //if (userId != null)
             //{
             //    var user = await _userService.GetUserById(userId);
@@ -48,8 +48,12 @@ namespace Task_Flow.WebAPI.Hubs
             //        await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
             //    }
             //}
-            if(user!=null)
-                    await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+            if (user != null)
+            {
+                await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+                user.IsOnline = true;
+                await _userService.Update(user);
+            }
             await base.OnConnectedAsync();
         }
 

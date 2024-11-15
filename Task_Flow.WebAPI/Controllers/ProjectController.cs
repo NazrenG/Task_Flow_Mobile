@@ -140,15 +140,17 @@ namespace Task_Flow.WebAPI.Controllers
             };
             await _projectService.Add(item);
             var projectId = await _projectService.GetProjectByName(userId,value.Title);
-            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = item.Id, Text = "created a new Project named: " + item.Title });
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = projectId.Id, Text = "created a new Project named: " + item.Title });
             return Ok(item);
         }
 
         // PUT api/<ProjectController>/5
-
+        [Authorize]
         [HttpPut("ChangeTitle/{id}")]
         public async Task<IActionResult> PutTitle(int id, [FromBody] string value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             var item = await _projectService.GetProjectById(id);
 
             if (item == null)
@@ -157,13 +159,15 @@ namespace Task_Flow.WebAPI.Controllers
             }
             item.Title = value;
             await _projectService.Update(item);
-            //await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId =id, Text = "created a new Project named: " + item.Title });
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Title to: " + item.Title });
             return Ok();
         }
 
+        [Authorize]
         [HttpPut("ChangeDescription/{id}")]
         public async Task<IActionResult> PutDescription(int id, [FromBody] string value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var item = await _projectService.GetProjectById(id);
 
             if (item == null)
@@ -172,12 +176,14 @@ namespace Task_Flow.WebAPI.Controllers
             }
             item.Description = value;
             await _projectService.Update(item);
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Description"});
             return Ok();
         }
-
+        [Authorize]
         [HttpPut("ChangeCompleted/{id}")]
         public async Task<IActionResult> PutCompleted(int id, [FromBody] bool value)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var item = await _projectService.GetProjectById(id);
 
             if (item == null)
@@ -186,17 +192,21 @@ namespace Task_Flow.WebAPI.Controllers
             }
             item.IsCompleted = value;
             await _projectService.Update(item);
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Project Completed" });
             return Ok();
         }
         // DELETE api/<ProjectController>/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var item = await _projectService.GetProjectById(id);
             if (item == null)
             {
                 return NotFound();
             }
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Project (" + item.Title + ") Deleted!" });
             await _projectService.Delete(item);
             return Ok(item);
         }
