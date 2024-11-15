@@ -2,6 +2,7 @@
 {
     public class FriendDto
     {
+        public string Id { get; set; }
         public string? FriendName { get; set; }
         public string? FriendOccupation { get; set; }
         public string? FriendPhone { get; set; }

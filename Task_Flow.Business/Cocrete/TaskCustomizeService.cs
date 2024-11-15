@@ -1,7 +1,7 @@
 ﻿using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
-namespace Task_Flow.DataAccess.Concrete
+namespace Task_Flow.Business.Cocrete
 {
     public class TaskCustomizeService : ITaskCustomizeService
     {

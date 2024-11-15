@@ -46,6 +46,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return new FriendDto
                 {
+                    Id=p.Id,
                     FriendName = p.Firstname + " " + p.Lastname,
                     FriendEmail = p.Email,
                     FriendOccupation = p.Occupation,
