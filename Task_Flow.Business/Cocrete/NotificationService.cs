@@ -23,7 +23,7 @@ namespace Task_Flow.Business.Cocrete
            await notificationDal.Delete(notification);  
         }
 
-        public async Task<Notification> GetNotificationById(string id)
+        public async Task<Notification> GetNotificationById(int id)
         {
             return await notificationDal.GetById(p=>p.Id==id);
         }

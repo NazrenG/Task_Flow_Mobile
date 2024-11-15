@@ -135,7 +135,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Country = user.Country,
                 Birthday = user.Birthday,
                 Email = user.Email,
-                Path = user.Image,
+                Image = user.Image,
                 Occupation = user.Occupation,
 
             });
