@@ -50,8 +50,10 @@ namespace Task_Flow.WebAPI.Hubs
             //}
             if (user != null)
             {
-                await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+                //await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+                await Clients.All.SendAsync("UserStatusChange", user.Email, true);
                 user.IsOnline = true;
+                user.LastLoginDate = DateTime.UtcNow;
                 await _userService.Update(user);
             }
             await base.OnConnectedAsync();
@@ -59,16 +61,14 @@ namespace Task_Flow.WebAPI.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId != null)
+            var user = await _userManager.GetUserAsync(Context.User);
+            if (user != null)
             {
-                var user = await _userService.GetUserById(userId);
-                if (user != null)
-                {
+               
                     user.IsOnline = false;
                     await _userService.Update(user);
                     await Clients.All.SendAsync("DisconnectInfo", $"{user.UserName} has disconnected");
-                }
+                
             }
             await base.OnDisconnectedAsync(exception);
         }
