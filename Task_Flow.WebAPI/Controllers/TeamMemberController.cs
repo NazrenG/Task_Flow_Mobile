@@ -86,6 +86,15 @@ namespace Task_Flow.WebAPI.Controllers
 
         }
 
+        //[Authorize]
+        //[HttpGet("TeamMembersActivity")]
+        //public async Task<IActionResult> GetTeamMemberAvtivity()
+        //{
+        //    var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //    var data = _teamMemberService.GetTaskMemberById();
+        //}
+
+
         // DELETE api/<TeamMemberController>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
