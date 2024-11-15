@@ -54,7 +54,30 @@ namespace Task_Flow.WebAPI.Controllers
             }).ToList();
             return Ok(items);
         }
-    
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserTask(int id)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var item=await userTaskService.GetById(id);
+
+            var work = new WorkDto
+            {
+                CreatedById = userId,
+                Description = item.Description,
+                Deadline = item.Deadline,
+                Priority = item.Priority,
+                Status = item.Status,
+                Title = item.Title, 
+                StartDate = item.StartTime,
+                Color = item.Color,
+            };
+            return Ok(work);
+        }
         [Authorize]
         [HttpGet("UserTasksCount")]
         public async Task<IActionResult> GetUserTaskCount()
@@ -70,8 +93,7 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(item.Count());
         }
          
-
-        // POST api/<WorkController>
+         
         [Authorize]
         [HttpPost("NewTask")]
         public async Task<IActionResult> Post([FromBody] WorkDto value)
@@ -89,8 +111,9 @@ namespace Task_Flow.WebAPI.Controllers
                 Description = value.Description,
                 Deadline = value.Deadline,
                 Priority = value.Priority,
-                Status = value.Status,
+                Status = "to do",
                 Title = value.Title, 
+                Color=value.Color
             };
             await userTaskService.Add(item);
             return Ok(item);

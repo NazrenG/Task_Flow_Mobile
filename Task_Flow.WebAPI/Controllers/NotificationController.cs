@@ -21,8 +21,9 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IRecentActivityService recentActivityService;
         private readonly IRequestNotificationService requestNotificationService;
         private readonly UserManager<CustomUser> _userManager;
+        private readonly IFriendService friendService;
 
-        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService)
         {
             this.notificationService = notificationService;
             this.userService = userService;
@@ -30,6 +31,7 @@ namespace Task_Flow.WebAPI.Controllers
             this.recentActivityService = recentActivityService;
             this.requestNotificationService = requestNotificationService;
             _userManager = userManager;
+            this.friendService = friendService;
         }
 
         [Authorize]
@@ -45,7 +47,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var list = await requestNotificationService.GetRequestNotifications(userId);
-            var items = list.Where(i => i.IsAccepted==false).Select(p =>
+            var items = list.Where(i => i.IsAccepted == false).Select(p =>
             {
                 return new
                 {
@@ -71,7 +73,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Select(p =>
             {
                 return new
-                {
+                { 
                     Text = p.Text,
                     Username = p.Sender?.UserName,
                     Path = p.Sender.Image,
@@ -90,21 +92,28 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
 
-            if (!int.TryParse(userId, out int id))
-            {
-                return BadRequest(new { message = "Invalid user ID." });
-            }
+           
             var list = await notificationService.GetNotifications();
             var items = list.Where(i => i.UserId == userId && i.IsCalendarMessage == true).Select(p =>
             {
                 return new
                 {
+                    Id=p.Id,
                     Text = p.Text,
-                    Username = p.User?.UserName,
+                    Date=p.Created,
                 };
-            });
+            }).ToList();
             return Ok(items);
         }
+        [HttpDelete("DeletedCalendarMessage/{id}")]
+        public async Task<IActionResult> DeletedCalendarMessage(int id)
+        {
+            var item = await notificationService.GetNotificationById(id);
+            if (item == null) { return BadRequest(new { message = "not found message" }); }
+            await notificationService.Delete(item);
+            return Ok(new { message="delete message succesfuly"});
+        }
+
         [Authorize]
         [HttpGet("TwoCalendarNotification")]
         public async Task<IActionResult> TakeTwoCalendarNotification()
@@ -140,7 +149,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             var list = await requestNotificationService.GetRequestNotifications(userId);
 
-            return Ok(list.Where(l => l.IsAccepted==false).Count());
+            return Ok(list.Where(l => l.IsAccepted == false).Count());
         }
 
         [Authorize]
@@ -173,7 +182,7 @@ namespace Task_Flow.WebAPI.Controllers
 
         // DELETE api/<NotificationController>/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
             var item = await notificationService.GetNotificationById(id);
             if (item == null) return NotFound();
@@ -193,11 +202,11 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized(new { message = "user not found" });
             }
-             
+
             var item = await notificationSettingService.GetOrCreateNotificationSetting(userId);
 
             return Ok(new { success = true, message = "notification setting" });
-        } 
+        }
         [Authorize]
         [HttpPost("UpdatedNotificationSetting")]
         public async Task<IActionResult> UpdateNotificationSetting(NotificationSettingDto dto)
@@ -208,19 +217,19 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized(new { message = "User not found" });
             }
-             
+
             var item = await notificationSettingService.GetNotificationSetting(userId);
 
             if (item == null)
             {
-                return NotFound(new{message= "Notification settings not found for the user."});
+                return NotFound(new { message = "Notification settings not found for the user." });
             }
-             
+
             item.DeadlineReminders = dto.DeadlineReminders;
             item.FriendshipOffers = dto.FriendshipOffers;
             item.IncomingComments = dto.IncomingComments;
             item.InternalTeamMessages = dto.InternalTeamMessages;
-            item.NewProjectProposals = dto.NewProjectProposals; 
+            item.NewProjectProposals = dto.NewProjectProposals;
             await notificationSettingService.Update(item);
 
             return Ok(new { success = true, message = "Update successful" });
@@ -245,7 +254,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 Text = l.Text,
                 Type = l.Type,
-                Created=l.Created,
+                Created = l.Created,
             }).ToList();
 
             return Ok(list);
@@ -265,14 +274,14 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 UserId = userId,
                 Text = dto.Text,
-                Type = dto.Type,  
+                Type = dto.Type,
             };
             await recentActivityService.Add(item);
             return Ok(new { message = "Activity added successfully" });
         }
 
 
-        // Bildirimleri Getirme
+        // request notification
         [Authorize]
         [HttpGet("RequestNotification")]
         public async Task<IActionResult> GetRequestNotification()
@@ -285,20 +294,20 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var items = await requestNotificationService.GetRequestNotifications(userId);
-            var onlyNotAccepted=items.Where(t=>t.IsAccepted==false).ToList();
-            var list = items.Select(l => new RequestNotificationDto
+            var onlyNotAccepted = items.Where(t => t.IsAccepted == false).ToList();
+            var list = items.Select(l => new
             {
+                RequestId=l.Id,
                 Text = l.Text,
-                SenderId = l.SenderId,
-                ReceiverEmail = l.Receiver.Email, 
-                IsAccepted= l.IsAccepted,   
-              
-            });
+                SenderName = $"{l.Sender.Firstname} {l.Sender.Lastname}",
+                Image = l.Sender.Image,
+
+            }).ToList();
 
             return Ok(list);
         }
 
-        // request notification
+
         [Authorize]
         [HttpPost("NewRequestNotification")]
         public async Task<IActionResult> AddRequestNotification(RequestNotificationDto dto)
@@ -319,8 +328,8 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 Text = dto.Text,
                 SenderId = userId,
-                ReceiverId = receiverUser.Id,  
-                IsAccepted=dto.IsAccepted,
+                ReceiverId = receiverUser.Id,
+                IsAccepted = dto.IsAccepted,
             };
 
             await requestNotificationService.Add(item);
@@ -331,10 +340,40 @@ namespace Task_Flow.WebAPI.Controllers
                 data = new RequestNotificationDto
                 {
                     Text = item.Text,
-                   // SenderId = item.SenderId,
-                    ReceiverEmail = receiverUser.Email, 
+                    // SenderId = item.SenderId,
+                    ReceiverEmail = receiverUser.Email,
                 }
             });
+        }
+        [HttpDelete("DeleteRequestNotification/{requestId}")]
+        public async Task<IActionResult> DeleteRequestNotification(int requestId)
+        {
+
+            var request = await requestNotificationService.GetRequestNotificationById(requestId);
+            if (request == null) { return BadRequest(new { message = "request not found" }); }
+            await requestNotificationService.Delete(request);
+            return Ok(new { message = "delete request notification succesfully" });
+        }
+        [Authorize]
+        [HttpPut("AcceptRequestNotification/{requestId}")]
+        public async Task<IActionResult> PutAcceptRequestNotification(int requestId)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
+            var request = await requestNotificationService.GetRequestNotificationById(requestId);
+            if (request == null) { return BadRequest(new { message = "request not found" }); }
+            request.IsAccepted = true;
+            await requestNotificationService.Update(request);
+            await friendService.Add(new Friend
+            {
+                UserId = userId,
+                UserFriendId = request.SenderId,
+            });
+
+            return Ok(new { message = "accept request succesfuly" });
         }
 
     }

@@ -15,7 +15,10 @@ namespace Task_Flow.Business.Cocrete
 
         public async Task Add(UserTask assign)
         {
-           await taskAssignDal.Add(assign);
+           var list=await taskAssignDal.GetAll();
+            var items= list.FirstOrDefault(p=>p.Title == assign.Title);
+            if (items==null) await taskAssignDal.Add(assign);   
+
         }
 
         public async Task Delete(UserTask assign)

@@ -4,7 +4,7 @@ namespace Task_Flow.Entities.Models
 {
     public class Notification:IEntity
     { 
-        public string Id { get; set; }  
+        public int Id { get; set; }  
         public string? Text { get; set; } 
         public string? UserId { get; set; } 
         public bool IsCalendarMessage { get; set; } 
