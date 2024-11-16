@@ -12,8 +12,8 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    [Migration("20241030160338_Init2")]
-    partial class Init2
+    [Migration("20241115220855_Init11")]
+    partial class Init11
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -342,8 +342,11 @@ namespace Task_Flow.Entities.Migrations
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Notification", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -364,6 +367,41 @@ namespace Task_Flow.Entities.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Task_Flow.Entities.Models.NotificationSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("DeadlineReminders")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("FriendshipOffers")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IncomingComments")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("InternalTeamMessages")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("NewProjectProposals")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.ToTable("NotificationSettings");
+                });
+
             modelBuilder.Entity("Task_Flow.Entities.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -371,6 +409,9 @@ namespace Task_Flow.Entities.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -381,8 +422,17 @@ namespace Task_Flow.Entities.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
@@ -392,6 +442,37 @@ namespace Task_Flow.Entities.Migrations
                     b.HasIndex("CreatedById");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.ProjectActivity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProjectActivities");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Quiz", b =>
@@ -414,6 +495,65 @@ namespace Task_Flow.Entities.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Quizzes");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.RecentActivity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RecentActivities");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.RequestNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReceiverId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SenderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("RequestNotifications");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.TaskAssigne", b =>
@@ -491,6 +631,45 @@ namespace Task_Flow.Entities.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("TeamMembers");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.UserTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Deadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Priority")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("UserTask");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Work", b =>
@@ -646,6 +825,15 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Task_Flow.Entities.Models.NotificationSetting", b =>
+                {
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
+                        .WithOne("Setting")
+                        .HasForeignKey("Task_Flow.Entities.Models.NotificationSetting", "UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Task_Flow.Entities.Models.Project", b =>
                 {
                     b.HasOne("Task_Flow.Entities.Models.CustomUser", "CreatedBy")
@@ -653,6 +841,51 @@ namespace Task_Flow.Entities.Migrations
                         .HasForeignKey("CreatedById");
 
                     b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.ProjectActivity", b =>
+                {
+                    b.HasOne("Task_Flow.Entities.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.RecentActivity", b =>
+                {
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
+                        .WithMany("RecentActivities")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Task_Flow.Entities.Models.RequestNotification", b =>
+                {
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "Receiver")
+                        .WithMany("RequestNotificationsReceiver")
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "Sender")
+                        .WithMany("RequestNotificationsSender")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.TaskAssigne", b =>
@@ -703,6 +936,15 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Task_Flow.Entities.Models.UserTask", b =>
+                {
+                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "CreatedBy")
+                        .WithMany("UserTasks")
+                        .HasForeignKey("CreatedById");
+
+                    b.Navigation("CreatedBy");
+                });
+
             modelBuilder.Entity("Task_Flow.Entities.Models.Work", b =>
                 {
                     b.HasOne("Task_Flow.Entities.Models.CustomUser", "CreatedBy")
@@ -737,11 +979,22 @@ namespace Task_Flow.Entities.Migrations
 
                     b.Navigation("Projects");
 
+                    b.Navigation("RecentActivities");
+
+                    b.Navigation("RequestNotificationsReceiver");
+
+                    b.Navigation("RequestNotificationsSender");
+
+                    b.Navigation("Setting")
+                        .IsRequired();
+
                     b.Navigation("TaskAssignees");
 
                     b.Navigation("TaskForUsers");
 
                     b.Navigation("TeamMembers");
+
+                    b.Navigation("UserTasks");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Project", b =>

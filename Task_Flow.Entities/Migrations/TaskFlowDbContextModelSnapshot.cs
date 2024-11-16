@@ -181,7 +181,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.CustomUser", b =>
@@ -305,7 +305,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Friends", (string)null);
+                    b.ToTable("Friends");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Message", b =>
@@ -334,13 +334,16 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Notification", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -358,7 +361,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.NotificationSetting", b =>
@@ -393,7 +396,7 @@ namespace Task_Flow.Entities.Migrations
                         .IsUnique()
                         .HasFilter("[UserId] IS NOT NULL");
 
-                    b.ToTable("NotificationSettings", (string)null);
+                    b.ToTable("NotificationSettings");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Project", b =>
@@ -435,7 +438,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.ProjectActivity", b =>
@@ -488,7 +491,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Quizzes", (string)null);
+                    b.ToTable("Quizzes");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.RecentActivity", b =>
@@ -515,7 +518,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RecentActivities", (string)null);
+                    b.ToTable("RecentActivities");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.RequestNotification", b =>
@@ -547,7 +550,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("RequestNotifications", (string)null);
+                    b.ToTable("RequestNotifications");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.TaskAssigne", b =>
@@ -574,7 +577,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TaskAssignes", (string)null);
+                    b.ToTable("TaskAssignes");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.TaskCustomize", b =>
@@ -598,7 +601,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskCustomizes", (string)null);
+                    b.ToTable("TaskCustomizes");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.TeamMember", b =>
@@ -624,7 +627,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TeamMembers", (string)null);
+                    b.ToTable("TeamMembers");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.UserTask", b =>
@@ -663,7 +666,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("UserTask", (string)null);
+                    b.ToTable("UserTask");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Work", b =>
@@ -707,7 +710,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Works", (string)null);
+                    b.ToTable("Works");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
