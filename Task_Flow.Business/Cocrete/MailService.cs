@@ -25,7 +25,7 @@ namespace Task_Flow.Business.Cocrete
         _password = configuration["SmtpSettings:Password"];
         }
 
-        public void SendEmail(string recieverMail, string name, string phone, string text)
+        public void SendEmail(string recieverMail, string text)
         {
             string sender = _userName;
             string senderPassword = _password;
@@ -35,43 +35,7 @@ namespace Task_Flow.Business.Cocrete
             message.Subject = $"New Feedback!";
             message.To.Add(new MailAddress(recieverMail));
             var str = new StringBuilder();
-            message.Body = @"<!DOCTYPE html>
-<html lang=""en"">
-<head>
-    <meta charset=""UTF-8"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-    <title>Email Notification</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            color: #333;
-        }
-        .details {
-            margin: 20px 0;
-        }
-        .details p {
-            margin: 5px 0;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #555;
-        }
-    </style>
-" + $"</head>\r\n<body>\r\n    <div class=\"container\">\r\n        <h1>Message Received</h1>\r\n        <p>Dear Admin,</p>\r\n        <p>You have received a new message from a user. Below are the details:</p>\r\n        \r\n        <div class=\"details\">\r\n            <p><strong>Name:</strong> {name}</p>\r\n            <p><strong>Phone:</strong> {phone}</p>\r\n            <p><strong>Message:</strong></p>\r\n            <p>{text}</p>\r\n        </div>\r\n\r\n        <div class=\"footer\">\r\n            <p>Thank you,</p>\r\n            <p>Your Website Team</p>\r\n        </div>\r\n    </div>\r\n</body>\r\n</html>";
+            message.Body = text;
             message.IsBodyHtml = true;
 
             var smtpClient = new SmtpClient(_host)

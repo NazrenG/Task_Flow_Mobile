@@ -38,7 +38,7 @@ namespace Task_Flow.Business.Cocrete
                         if (project.CreatedBy != null)
                         {
                             // E-posta gönderin
-                            emailService.SendEmail("nezrin.qu@gmail.com", "project.CreatedBy.UserName", "Deadline reminder",
+                            emailService.SendEmail("nezrin.qu@gmail.com", 
                                 $"Projenizin teslim süresi yaklaşıyor: {project.Title} - {project.EndDate:dd.MM.yyyy}");
 
                         }
