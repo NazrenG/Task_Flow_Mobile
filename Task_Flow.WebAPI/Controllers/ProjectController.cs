@@ -84,6 +84,7 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         // GET api/<ProjectController>/5
+  
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -102,6 +103,33 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(project);
 
         }
+
+        [Authorize]
+        [HttpGet("AllProjectsUserOwn")]
+        public async Task<IActionResult> GetUserOwnProjects()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var list = await _projectService.GetProjects(userId);
+          
+            return Ok(list);
+
+        }
+
+        [Authorize]
+        [HttpGet("UserAddedProjects")]
+        public async Task<IActionResult>GetUserAddedProjects()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var list = await _teamMemberService.GetProjectListByUserIdAsync(userId);
+            var projects = new List<Project>();
+            foreach (var item in list)
+            {
+                projects.Add(await _projectService.GetProjectById(item.ProjectId));
+            }
+            return Ok(projects);
+
+        }
+
         [HttpGet("ProjectTaskCount/{id}")]
         public async Task<IActionResult> GetProjectTaskCount(int id)
         {
@@ -223,22 +251,32 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("PendingProject")]
-        public async Task<IActionResult> GetPendingProject()
+        [HttpGet("OnGoingProjectCount")]
+        public async Task<IActionResult> GetOnGoingProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var projects = await _projectService.GetPendingProject(userId);
-            return Ok(projects);
+            var projects = await _projectService.GetOnGoingProject(userId);
+            return Ok(projects.Count==null?0: projects.Count);
 
         }
 
         [Authorize]
-        [HttpGet("CompletedTask")]
-        public async Task<IActionResult> GetCompletedTask()
+        [HttpGet("PendingProjectCount")]
+        public async Task<IActionResult> GetPendingProjectCount()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _projectService.GetPendingProject(userId);
+            return Ok(projects.Count == null ? 0 : projects.Count);
+
+        }
+
+        [Authorize]
+        [HttpGet("CompletedTaskCount")]
+        public async Task<IActionResult> GetCompletedTaskCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var projects = await _projectService.GetCompletedTask(userId);
-            return Ok(projects);
+            return Ok(projects.Count == null ? 0 : projects.Count);
 
         }
 

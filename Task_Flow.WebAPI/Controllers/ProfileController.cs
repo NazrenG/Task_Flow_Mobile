@@ -23,7 +23,7 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
-        private readonly Dictionary<string, int> _verificationCodes = new();
+        private static readonly Dictionary<string, int> _verificationCodes = new();
         private readonly IFileService _fileService;
 
         public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext,
@@ -145,7 +145,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
         public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return NotFound(new { message = "User not found" });
+            if (user == null) return Ok(new { message = "User not found" });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);

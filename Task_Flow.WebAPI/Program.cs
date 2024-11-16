@@ -21,9 +21,15 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
 {
-    builder.WithOrigins("http://localhost:3001/").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 }));
- 
+
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(opt =>
+    {
+        opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddSignalR();
 // Database connection
 builder.Services.AddDbContext<TaskFlowDbContext>(opt =>
@@ -116,6 +122,7 @@ app.UseCors(x =>
 
 
 app.UseRouting();
+app.UseCors("corsapp");
 app.UseAuthentication();
 app.UseAuthorization();
 

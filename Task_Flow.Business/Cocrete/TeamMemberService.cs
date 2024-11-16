@@ -22,6 +22,12 @@ namespace Task_Flow.Business.Cocrete
 return await dal.GetById(f=>f.Id == id);
         }
 
+        public async Task<List<TeamMember>> GetProjectListByUserIdAsync(string id)
+        {
+            var list=await dal.GetAll(t=>t.UserId== id);
+            return list;
+        }
+
         public async System.Threading.Tasks.Task Add(TeamMember teamMember)
         {
            await dal.Add(teamMember);   
