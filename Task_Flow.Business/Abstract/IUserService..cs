@@ -10,7 +10,8 @@ namespace Task_Flow.DataAccess.Abstract
        Task Add(CustomUser user);
        Task Update(CustomUser user);
        Task Delete(CustomUser user);  
-        Task<int> GetAllUserCount(); 
+        Task<int> GetAllUserCount();
+        Task<CustomUser> GetOneUSerByUsername(string username);
         Task<bool> CheckUsernameOrEmail(string nameOrEmail);
     }
 }

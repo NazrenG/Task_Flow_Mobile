@@ -122,7 +122,6 @@ app.UseCors(x =>
 
 
 app.UseRouting();
-app.UseCors("corsapp");
 app.UseAuthentication();
 app.UseAuthorization();
 

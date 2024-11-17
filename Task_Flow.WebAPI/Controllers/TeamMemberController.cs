@@ -13,11 +13,13 @@ namespace Task_Flow.WebAPI.Controllers
     public class TeamMemberController : ControllerBase
     {
 
+        private readonly IUserService _userService;
         private readonly ITeamMemberService _teamMemberService;
 
-        public TeamMemberController(ITeamMemberService teamMemberService)
+        public TeamMemberController(ITeamMemberService teamMemberService,IUserService userService)
         {
             _teamMemberService = teamMemberService;
+            _userService = userService;
         }
 
         [HttpGet("AllMember")]
@@ -30,7 +32,6 @@ namespace Task_Flow.WebAPI.Controllers
                 {
                     ProjectId=t.ProjectId,
                     UserId=t.UserId,
-                    Role=t.Role,
 
                 };
             }); 
@@ -49,7 +50,6 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 ProjectId = item.ProjectId,
                 UserId = item.UserId,
-                Role = item.Role,
             });
         }
 
@@ -65,7 +65,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 ProjectId = value.ProjectId,
                 UserId = value.UserId,
-                Role = value.Role,
+               
             };
            await _teamMemberService.Add(item);
             return Ok(item);
@@ -107,5 +107,42 @@ namespace Task_Flow.WebAPI.Controllers
             await _teamMemberService.Delete(item);
             return Ok();
         }
+
+        [HttpPost("TeamMemberCollections")]
+        public async Task<IActionResult> AddTeamMembersAsTeam([FromBody] TeamMemberCollectionDto dto)
+        {
+            if (dto == null || dto.Members == null || !dto.Members.Any() )
+            {
+                return BadRequest(new { Message = "Invalid input data." });
+            }
+
+            try
+            {
+                foreach (var username in dto.Members)
+                {
+                    var user = await _userService.GetOneUSerByUsername(username);
+                    if (user == null)
+                    {
+                        return NotFound(new { Message = $"User '{username}' not found." });
+                    }
+
+                    var teamMember = new TeamMember
+                    {
+                        ProjectId = dto.ProjectId,
+                        UserId = user.Id,
+                    };
+
+                    await _teamMemberService.Add(teamMember);
+                }
+
+                return Ok(new { Message = "Team members added successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
+            }
+        }
+
+
     }
 }
