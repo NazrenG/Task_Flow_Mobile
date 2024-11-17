@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task_Flow.Entities.Data;
 
@@ -11,9 +12,11 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    partial class TaskFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241116160809_Init01")]
+    partial class Init01
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,19 +375,19 @@ namespace Task_Flow.Entities.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("DeadlineReminders")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("FriendshipOffers")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("InnovationNewProject")
+                    b.Property<bool>("IncomingComments")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("NewTaskWithInProject")
+                    b.Property<bool>("InternalTeamMessages")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("ProjectCompletationDate")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("TaskDueDate")
+                    b.Property<bool>("NewProjectProposals")
                         .HasColumnType("bit");
 
                     b.Property<string>("UserId")

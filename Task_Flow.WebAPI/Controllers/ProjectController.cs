@@ -4,9 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
-using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
-using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
@@ -245,7 +243,37 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetOnGoingProject()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             var projects = await _projectService.GetOnGoingProject(userId);
+            return Ok(projects);
+
+        }   
+        [Authorize]
+        [HttpGet("PendingProject")]
+        public async Task<IActionResult> GetPendingProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
+            var projects = await _projectService.GetPendingProject(userId);
+            return Ok(projects);
+
+        } 
+        [Authorize]
+        [HttpGet("CompletedProject")]
+        public async Task<IActionResult> GetCompletedProject()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
+            var projects = await _projectService.GetCompletedTask(userId);
             return Ok(projects);
 
         }
@@ -255,6 +283,10 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetOnGoingProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             var projects = await _projectService.GetOnGoingProject(userId);
             return Ok(projects.Count==null?0: projects.Count);
 
@@ -265,6 +297,10 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetPendingProjectCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             var projects = await _projectService.GetPendingProject(userId);
             return Ok(projects.Count == null ? 0 : projects.Count);
 
@@ -275,6 +311,10 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetCompletedTaskCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             var projects = await _projectService.GetCompletedTask(userId);
             return Ok(projects.Count == null ? 0 : projects.Count);
 
@@ -285,6 +325,10 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetProjectNames()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             var projects = await _projectService.GetProjects(userId);
             var names = new List<string>();
             foreach (var project in projects) {
@@ -301,6 +345,10 @@ namespace Task_Flow.WebAPI.Controllers
         {
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Invalid token or user not found.");
+            }
             List<string> months = new List<string>();
             DateTime currentDate = DateTime.Now;
             var completedTasks = new List<int>();

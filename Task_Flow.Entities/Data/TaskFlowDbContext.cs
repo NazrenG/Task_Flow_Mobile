@@ -95,6 +95,7 @@ namespace Task_Flow.Entities.Data
         public virtual DbSet<NotificationSetting> NotificationSettings { get; set; }
         public virtual DbSet<RecentActivity> RecentActivities { get; set; }
         public virtual DbSet<ProjectActivity>ProjectActivities { get; set; }
+        public virtual DbSet<UserTask> UserTasks { get; set; }
 
     }
 }

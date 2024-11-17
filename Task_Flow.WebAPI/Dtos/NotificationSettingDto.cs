@@ -3,9 +3,9 @@
     public class NotificationSettingDto
     {
         public bool FriendshipOffers { get; set; }
-        public bool DeadlineReminders { get; set; }
-        public bool IncomingComments { get; set; }
-        public bool InternalTeamMessages { get; set; }
-        public bool NewProjectProposals { get; set; }
+        public bool InnovationNewProject { get; set; }
+        public bool TaskDueDate { get; set; }
+        public bool ProjectCompletationDate { get; set; }
+        public bool NewTaskWithInProject { get; set; }
     }
 }

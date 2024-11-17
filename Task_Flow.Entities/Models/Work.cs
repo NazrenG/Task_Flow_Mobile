@@ -18,7 +18,7 @@ namespace Task_Flow.Entities.Models
         public string? Color { get; set; }
         public int ProjectId { get; set; }
 
-        public string? CreatedById { get; set; }//userId
+        public string? CreatedById { get; set; }//adi sehvdi UserId olmalidi -taski isleyen userId
         //
          
         public virtual CustomUser? CreatedBy { get; set; }

@@ -38,11 +38,11 @@ namespace Task_Flow.Business.Cocrete
                 notificationSetting = new NotificationSetting
                 {
                     UserId = userId,
-                    FriendshipOffers = false,
-                    DeadlineReminders = false,
-                    IncomingComments = false,
-                    InternalTeamMessages = false,
-                    NewProjectProposals = false
+                    FriendshipOffers = true,
+                    NewTaskWithInProject = true,
+                    ProjectCompletationDate = true,
+                    InnovationNewProject = true,
+                    TaskDueDate = true
                 };
 
                 await dal.Add(notificationSetting); 
