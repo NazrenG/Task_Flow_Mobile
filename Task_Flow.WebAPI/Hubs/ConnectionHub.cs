@@ -37,26 +37,42 @@ namespace Task_Flow.WebAPI.Hubs
         }
         public override async Task OnConnectedAsync()
         {
-            var user = await _userManager.GetUserAsync(Context.User);
-            //if (userId != null)
+            //var user = await _userManager.GetUserAsync(Context.User);
+            ////if (userId != null)
+            ////{
+            ////    var user = await _userService.GetUserById(userId);
+            ////    if (user != null)
+            ////    {
+            ////        user.IsOnline = true;
+            ////        await _userService.Update(user);
+            ////        await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+            ////    }
+            ////}
+            //if (user != null)
             //{
-            //    var user = await _userService.GetUserById(userId);
-            //    if (user != null)
-            //    {
-            //        user.IsOnline = true;
-            //        await _userService.Update(user);
-            //        await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
-            //    }
+            //    //await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+            //    await Clients.All.SendAsync("UserStatusChange", user.Email, true);
+            //    user.IsOnline = true;
+            //    user.LastLoginDate = DateTime.UtcNow;
+            //    await _userService.Update(user);
             //}
-            if (user != null)
+            //await base.OnConnectedAsync();
+            var userName = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (userName != null)
             {
-                //await Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
-                await Clients.All.SendAsync("UserStatusChange", user.Email, true);
-                user.IsOnline = true;
-                user.LastLoginDate = DateTime.UtcNow;
-                await _userService.Update(user);
+                var currentUser = await _userService.GetOneUSerByUsername(userName!);
+
+                if (currentUser != null)
+                {
+                    currentUser.IsOnline = true;
+
+                    await _userService.Update(currentUser);
+
+                    await Clients.Others.SendAsync("ReceiveConnectInfo");
+                }
+
             }
-            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)

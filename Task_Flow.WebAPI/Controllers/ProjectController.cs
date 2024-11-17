@@ -62,6 +62,7 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(list);
         }
 
+        
 
 
         [Authorize]
@@ -80,9 +81,39 @@ namespace Task_Flow.WebAPI.Controllers
 
             return Ok(count);
         }
+        [Authorize]
+        [HttpPost("ProjectWithTitle")]
+        public async Task<IActionResult> GetProjectWithTitle([FromBody] string title)
+        {
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { message = "User not authorized." });
+                }
+
+                if (string.IsNullOrEmpty(title))
+                {
+                    return BadRequest(new { message = "Title is required." });
+                }
+                var project = await _projectService.GetProjectByName(userId, title);
+                if (project == null)
+                {
+                    return NotFound(new { message = "Project not found." });
+                }
+
+                return Ok(project);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", details = ex.Message });
+            }
+        }
+
 
         // GET api/<ProjectController>/5
-  
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {

@@ -35,13 +35,23 @@ namespace Task_Flow.WebAPI.Controllers
             _configuration = configuration;
         }
 
+        [Authorize]
         [HttpPost("searchedUser")]
         public async Task<IActionResult>SearchUser([FromBody] string key)
         {
-            var users = await _userService.GetUserByName(key);
-           
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            return Ok(new {Users=users});
+            var users = await _userService.GetUserByName(key);
+           var sort=users.Where(u=>u.Id!=userId).ToList();  
+
+            return Ok(new {Users=sort});
+        }
+
+        [HttpPost("GetUserWithUsername")]
+        public async Task<IActionResult> GetUserWithUsername(string username)
+        {
+            var data =await _userService.GetUserByName(username);
+            return Ok(data);
         }
 
         [HttpPost("signup")]
@@ -113,6 +123,7 @@ namespace Task_Flow.WebAPI.Controllers
             return token;
         }
         [Authorize]
+
         [HttpGet("currentUser")]
         public async Task<IActionResult> GetCurrentUserData()
         {

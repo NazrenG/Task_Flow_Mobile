@@ -258,7 +258,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
             var todayTasks=tasks.Where(d=>d.Deadline.Date==DateTime.Now.Date).OrderBy(t=>t.StartTime).ToList();
-            return Ok(todayTasks);
+            return Ok(todayTasks); 
 
         }
 

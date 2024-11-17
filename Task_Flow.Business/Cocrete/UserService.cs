@@ -56,6 +56,12 @@ namespace Task_Flow.Business.Cocrete
             return users.Any(); 
         }
 
+        public async Task<CustomUser>GetOneUSerByUsername(string username)
+        {
+            var allUsers = await dal.GetById(u=>u.UserName==username);
+            return allUsers;
+        }
+
         public async Task<List<CustomUser>> GetUserByName(string name)
         {
             var allUsers = await dal.GetAll();
