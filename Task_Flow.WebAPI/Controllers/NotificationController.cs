@@ -23,7 +23,7 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IRequestNotificationService requestNotificationService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IFriendService friendService;
-        private readonly MailService mailService;
+        private readonly MailService mailService; 
 
         public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService)
         {
@@ -311,12 +311,13 @@ namespace Task_Flow.WebAPI.Controllers
 
             var items = await requestNotificationService.GetRequestNotifications(userId);
             var onlyNotAccepted = items.Where(t => t.IsAccepted == false).ToList();
-            var list = items.Select(l => new
+            var list = onlyNotAccepted.Select(l => new
             {
                 RequestId=l.Id,
                 Text = l.Text,
                 SenderName = $"{l.Sender.Firstname} {l.Sender.Lastname}",
                 Image = l.Sender.Image,
+                
 
             }).ToList();
 
@@ -346,13 +347,19 @@ namespace Task_Flow.WebAPI.Controllers
                 SenderId = userId,
                 ReceiverId = receiverUser.Id,
                 IsAccepted = dto.IsAccepted,
+                NotificationType=dto.NotificationType,
             };
 
             await requestNotificationService.Add(item);
+            if(dto.NotificationType== "FriendRequest")
+            {
+   mailService.SendEmail(receiverUser.Email, $"You have new friendship request to {sender.Firstname} {sender.Lastname} ");
 
-            mailService.SendEmail(receiverUser.Email, $"You have new request to {sender.Firstname} {sender.Lastname} ");
-
-
+            } 
+            else
+            {
+                mailService.SendEmail(receiverUser.Email, $"You have a new project proposal from {sender.Firstname} {sender.Lastname}.proyektin adi ,descriptionu");
+            }
             return Ok(new
             {
                 message = "Activity added successfully",
@@ -388,12 +395,13 @@ namespace Task_Flow.WebAPI.Controllers
             await requestNotificationService.Update(request);
             await friendService.Add(new Friend
             {
-                UserId = userId,
-                UserFriendId = request.SenderId,
+                UserId = request.SenderId,
+                UserFriendId = userId,
             });
 
             return Ok(new { message = "accept request succesfuly" });
         }
+       
 
     }
 }

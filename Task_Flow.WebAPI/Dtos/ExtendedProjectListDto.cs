@@ -4,6 +4,7 @@ namespace Task_Flow.WebAPI.Dtos
 {
     public class ExtendedProjectListDto
     {
+        public int Id { get; set; } 
         public string? Title { get; set; }
         public int TotalTask {  get; set; }
         public int CompletedTask {  get; set; }

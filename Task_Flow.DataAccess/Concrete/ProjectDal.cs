@@ -21,5 +21,12 @@ namespace Task_Flow.DataAccess.Concrete
                    .Include(o => o.TeamMembers)  
                        .ThenInclude(tm => tm.User).ToListAsync();
         }
+
+        public async Task<Project> GetProjectById(int projectId)
+        {
+           return   _db.Projects.Include(p => p.TaskForUsers)
+                   .Include(o => o.TeamMembers)
+                       .ThenInclude(tm => tm.User).FirstOrDefault(p=>p.Id==projectId);
+        }
     }
 }

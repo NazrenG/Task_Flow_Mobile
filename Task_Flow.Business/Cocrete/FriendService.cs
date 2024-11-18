@@ -23,10 +23,7 @@ namespace Task_Flow.Business.Cocrete
             await dal.Delete(friend);
         }
 
-        public async Task<Friend> GetFriendsById(int id)
-        {
-            return await dal.GetById(f => f.Id == id);
-        }
+     
 
         public async Task<List<Friend>> GetFriends(string userId)
         {
@@ -36,6 +33,12 @@ namespace Task_Flow.Business.Cocrete
         public async Task Update(Friend friend)
         {
             await dal.Update(friend);
+        }
+
+        public async Task<Friend> GetFriendByUserAndFriendId(string userId, string friendId)
+        { 
+        var friends=await dal.GetAllFriends(userId);
+            return friends.FirstOrDefault(f => f.UserFriendId == friendId);
         }
     }
 }

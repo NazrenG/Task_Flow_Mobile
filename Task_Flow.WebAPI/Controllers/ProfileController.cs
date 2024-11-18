@@ -248,8 +248,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _userService.Update(user);
             return Ok(new { message = "Edit successful" });
         }
-
-        [Authorize]
+         
         [HttpPost("AddingOccupationDuringQuiz")]
 
         public async Task<IActionResult> AddOccupationDuringQuiz([FromBody] UserDto dto)
