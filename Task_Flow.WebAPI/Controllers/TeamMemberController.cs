@@ -108,7 +108,7 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("TeamMemberCollections")]
+        [HttpPost("TeamMemberCollections")]///Sevgi
         public async Task<IActionResult> AddTeamMembersAsTeam([FromBody] TeamMemberCollectionDto dto)
         {
             if (dto == null || dto.Members == null || !dto.Members.Any() )

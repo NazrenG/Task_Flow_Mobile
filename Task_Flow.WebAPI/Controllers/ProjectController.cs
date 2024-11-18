@@ -116,7 +116,7 @@ namespace Task_Flow.WebAPI.Controllers
 
         // GET api/<ProjectController>/5
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")] ///Sevgi
         public async Task<IActionResult> Get(int id)
         {
             var item = await _projectService.GetProjectById(id);
@@ -124,16 +124,35 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return NotFound();
             }
+
             var project = new ProjectDto
             {
                 Owner = item.CreatedBy?.UserName,
-                Description = item.Description,
                 IsCompleted = item.IsCompleted,
+                Description = item.Description,
                 Title = item.Title,
+                Color = item.Color,
+                StartDate = item.StartDate,
+                EndDate = item.EndDate,
             };
-            return Ok(project);
 
+            var teamMembers = await _teamMemberService.GetTaskMemberListById(id); 
+            var memberUsernames = new List<string>();
+
+            foreach (var teamMember in teamMembers)
+            {
+                var user = await _userService.GetUserById(teamMember.UserId);
+                if (user != null)
+                {
+                    memberUsernames.Add(user.UserName);
+                }
+            }
+
+            project.Members = memberUsernames;
+
+            return Ok(project);
         }
+
 
         [Authorize]
         [HttpGet("AllProjectsUserOwn")]
@@ -180,8 +199,8 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         // POST api/<ProjectController>
-        [Authorize]
-        [HttpPost]
+        [Authorize]///Sevgi
+        [HttpPost]///Sevgi
         public async Task<IActionResult> Post([FromBody] ProjectDto value)
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -196,6 +215,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Description = value.Description,
                 IsCompleted = value.IsCompleted,
                 Title = value.Title,
+                Color=value.Color,
             };
             await _projectService.Add(item);
             var projectId = await _projectService.GetProjectByName(userId,value.Title);
@@ -326,7 +346,7 @@ namespace Task_Flow.WebAPI.Controllers
 
         [Authorize]
 
-        [HttpPost("TasksDependingMonths")]
+        [HttpPost("TasksDependingMonths")]///Sevgi
 
         public async Task<IActionResult> GetTasksForChart([FromBody] string projectName)
         {

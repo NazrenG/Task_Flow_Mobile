@@ -249,7 +249,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
             return Ok(new { message = "Edit successful" });
         }
 
-        [Authorize]
+
         [HttpPost("AddingOccupationDuringQuiz")]
 
         public async Task<IActionResult> AddOccupationDuringQuiz([FromBody] UserDto dto)
@@ -259,22 +259,9 @@ return Ok(new {Result=true,Message= "Verification code sent" });
                 return BadRequest(new { message = "Invalid data provided." });
             }
 
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return BadRequest(new { message = "User not authenticated." });
-            }
-
-            var user = await _userService.GetUserById(userId);
-            if (user == null)
-            {
-                return NotFound(new { message = "User not found." });
-            }
+            
 
           
-            user.Occupation = dto.Occupation; 
-
-            await _userService.Update(user);
             return Ok(new { message = "Add occupation successful" });
         }
 
