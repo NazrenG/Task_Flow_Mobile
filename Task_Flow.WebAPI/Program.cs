@@ -136,7 +136,7 @@ app.UseCors(x =>
 
 
 
-app.UseRouting();
+app.UseRouting(); 
 app.UseAuthentication();
 app.UseAuthorization();
 

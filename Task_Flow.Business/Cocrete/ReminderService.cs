@@ -29,25 +29,57 @@ namespace Task_Flow.Business.Cocrete
                     var emailService = scope.ServiceProvider.GetRequiredService<MailService>();
 
 
-                    var projects = dbContext.Projects
-                  .Where(p => p.EndDate <= DateTime.Now.AddDays(1))
-                  .ToList();
+                    var tomorrow = DateTime.UtcNow.AddDays(1).Date;
+                    var userTasks = dbContext.UserTasks
+                        .Where(t => t.Deadline.Date == tomorrow).
+                        ToList();
 
-                    foreach (var project in projects)
+                    var taskInProjects = dbContext.Works
+                        .Where(t => t.Deadline.Date == tomorrow).
+                        ToList();
+                    var nottificationSetting = dbContext.NotificationSettings.ToList();
+                    bool check = true;
+                    foreach (var task in userTasks)
                     {
-                        if (project.CreatedBy != null)
+                        var user = dbContext.Users.FirstOrDefault(u => u.Id == task.CreatedById);
+                        if (user != null)
                         {
-                            // E-posta gönderin
-                            emailService.SendEmail("nezrin.qu@gmail.com", 
-                                $"Projenizin teslim süresi yaklaşıyor: {project.Title} - {project.EndDate:dd.MM.yyyy}");
+                            foreach (var item in nottificationSetting)
+                            {
+                                if (item.UserId == user.Id && item.TaskDueDate == false)
+                                {
+                                    check = false; break;
+                                }
+
+                            }
+                            if (check)
+                            {
+                                emailService.SendEmail(user.Email,
+                                                           $"Hi {user.Firstname} {user.Lastname}, the deadline for your task titled {task.Title} is approaching. Please complete it.");
+
+                            }
+                        }
+                    }
+                    foreach (var task in taskInProjects)
+                    {
+                        var user = dbContext.Users.FirstOrDefault(u => u.Id == task.CreatedById);
+                        foreach (var item in nottificationSetting)
+                        {
+                            if (item.UserId == user.Id && item.TaskDueDate==false)
+                            {
+                                check = false; break;
+                            }
+
+                        }
+                        if (check)
+                        {
+                            emailService.SendEmail(user.Email,
+                                                       $"Hi {user.Firstname} {user.Lastname}, the deadline for your task titled {task.Title} is approaching. Please complete it.");
 
                         }
                     }
 
-                    // Günlük görevleri dashboard için hazırlayın
-                    var dailyTasks = dbContext.Works
-                        .Where(t => t.Deadline.Date == DateTime.Now.Date)
-                        .ToList();
+
                     await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
                 };
             };

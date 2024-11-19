@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
@@ -14,12 +15,15 @@ namespace Task_Flow.WebAPI.Controllers
     {
         private readonly IFriendService friendService;
         private readonly IUserService _userService;
+        private readonly UserManager<CustomUser> _userManager;
 
-        public FriendController(IFriendService friendService, IUserService userService)
+        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager)
         {
             this.friendService = friendService;
             _userService = userService;
+            _userManager = userManager;
         }
+
         [Authorize]
         [HttpGet("AllUser")]
         public async Task<IActionResult> GetAllUsers()
@@ -30,15 +34,14 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
 
-            var list = await _userService.GetUsers();//butun userler
-            var friends=await friendService.GetFriends(userId);//dostlari
-            var allFriendList = friends.Select(l=>l.UserFriendId).ToList();
-            var item=new List<CustomUser>();
+            var list = await _userService.GetUsers();
+            var friends = await friendService.GetFriends(userId);
+            var allFriendList = friends.Select(l => l.UserFriendId).ToList();
+            var item = new List<CustomUser>();
             foreach (var user in list)
             {
                 if (user.Id != userId && !allFriendList.Contains(user.Id))
                 {
-                    // Dost olmayan kullanıcıyı ekle
                     item.Add(user);
                 }
             }
@@ -46,7 +49,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return new FriendDto
                 {
-                    Id=p.Id,
+                    Id = p.Id,
                     FriendName = p.Firstname + " " + p.Lastname,
                     FriendEmail = p.Email,
                     FriendOccupation = p.Occupation,
@@ -87,22 +90,7 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(items);
         }
 
-        //// GET api/<FriendController>/5
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> Get(int id)
-        //{
-        //    var item = await friendService.GetFriendsById(id);
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var friend = new FriendDto
-        //    {
-        //        UserFriendId = item.UserFriendId,
-        //        UserId = item.UserId,
-        //    };
-        //    return Ok(friend);
-        //}
+
 
         //  POST api/<FriendController>
         [Authorize]
@@ -124,17 +112,22 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
 
-        // DELETE api/<FriendController>/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize]
+        [HttpDelete("UnFollow/{friendMail}")]
+        public async Task<IActionResult> DeleteFriend(string friendMail)
         {
-            var item = await friendService.GetFriendsById(id);
-            if (item == null)
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
             {
-                return NotFound();
+                return Unauthorized(new { message = "user not found" });
             }
-            await friendService.Delete(item);
-            return Ok();
+            var friend = await _userManager.FindByEmailAsync(friendMail);
+            if (friend == null) { return Ok(new { message = "friend not found" }); }
+            var existFriend = await friendService.GetFriendByUserAndFriendId(userId, friend.Id);
+            if (existFriend == null) return Ok(new { message = "friend not found" });
+            await friendService.Delete(existFriend);
+            return Ok(new { message = "accept request succesfuly" });
+
         }
     }
 }

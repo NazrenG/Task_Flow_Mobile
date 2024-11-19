@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Task_Flow.Business.Cocrete;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -22,8 +23,9 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IRequestNotificationService requestNotificationService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IFriendService friendService;
+        private readonly MailService mailService; 
 
-        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService)
         {
             this.notificationService = notificationService;
             this.userService = userService;
@@ -32,6 +34,8 @@ namespace Task_Flow.WebAPI.Controllers
             this.requestNotificationService = requestNotificationService;
             _userManager = userManager;
             this.friendService = friendService;
+            this.mailService = mailService;
+            
         }
 
         [Authorize]
@@ -222,14 +226,24 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (item == null)
             {
-                return NotFound(new { message = "Notification settings not found for the user." });
+                var newNotificationSetting = new NotificationSetting
+                {
+                    UserId=userId,
+                    NewTaskWithInProject = dto.NewTaskWithInProject,
+                    FriendshipOffers = dto.FriendshipOffers,
+                    ProjectCompletationDate = dto.ProjectCompletationDate,
+                    TaskDueDate = dto.TaskDueDate,
+                    InnovationNewProject = dto.InnovationNewProject,
+                };
+                await notificationSettingService.Add(newNotificationSetting);
+                return Ok(new { message = "new notification service." });
             }
 
-            item.DeadlineReminders = dto.DeadlineReminders;
+            item.NewTaskWithInProject = dto.NewTaskWithInProject;
             item.FriendshipOffers = dto.FriendshipOffers;
-            item.IncomingComments = dto.IncomingComments;
-            item.InternalTeamMessages = dto.InternalTeamMessages;
-            item.NewProjectProposals = dto.NewProjectProposals;
+            item.ProjectCompletationDate = dto.ProjectCompletationDate;
+            item.InnovationNewProject = dto.InnovationNewProject;
+            item.TaskDueDate = dto.TaskDueDate;
             await notificationSettingService.Update(item);
 
             return Ok(new { success = true, message = "Update successful" });
@@ -293,14 +307,17 @@ namespace Task_Flow.WebAPI.Controllers
                 return Unauthorized(new { message = "user not found" });
             }
 
+       
+
             var items = await requestNotificationService.GetRequestNotifications(userId);
             var onlyNotAccepted = items.Where(t => t.IsAccepted == false).ToList();
-            var list = items.Select(l => new
+            var list = onlyNotAccepted.Select(l => new
             {
                 RequestId=l.Id,
                 Text = l.Text,
                 SenderName = $"{l.Sender.Firstname} {l.Sender.Lastname}",
                 Image = l.Sender.Image,
+                
 
             }).ToList();
 
@@ -317,7 +334,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized(new { message = "user not found" });
             }
-
+            var sender=await userService.GetUserById(userId);
             var receiverUser = await _userManager.FindByEmailAsync(dto.ReceiverEmail);
             if (receiverUser == null)
             {
@@ -330,10 +347,19 @@ namespace Task_Flow.WebAPI.Controllers
                 SenderId = userId,
                 ReceiverId = receiverUser.Id,
                 IsAccepted = dto.IsAccepted,
+                NotificationType=dto.NotificationType,
             };
 
             await requestNotificationService.Add(item);
+            if(dto.NotificationType== "FriendRequest")
+            {
+   mailService.SendEmail(receiverUser.Email, $"You have new friendship request to {sender.Firstname} {sender.Lastname} ");
 
+            } 
+            else
+            {
+                mailService.SendEmail(receiverUser.Email, $"You have a new project proposal from {sender.Firstname} {sender.Lastname}.proyektin adi ,descriptionu");
+            }
             return Ok(new
             {
                 message = "Activity added successfully",
@@ -369,12 +395,13 @@ namespace Task_Flow.WebAPI.Controllers
             await requestNotificationService.Update(request);
             await friendService.Add(new Friend
             {
-                UserId = userId,
-                UserFriendId = request.SenderId,
+                UserId = request.SenderId,
+                UserFriendId = userId,
             });
 
             return Ok(new { message = "accept request succesfuly" });
         }
+       
 
     }
 }

@@ -40,7 +40,7 @@ namespace Task_Flow.WebAPI.Controllers
 
         [HttpGet("{email}")]
         public async Task<IActionResult> GetUserProfile(string email)
-        { 
+        {
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
@@ -120,25 +120,25 @@ namespace Task_Flow.WebAPI.Controllers
         {
             //maili gonderirsen eger dogrudursa true qaytarir
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (!isCheckUser) return Ok(new {Result=false,Message= "This Mail Does Not Exist!" });
+            if (!isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-return Ok(new {Result=true,Message= "Verification code sent" }); 
+            return Ok(new { Result = true, Message = "Verification code sent" });
 
         }
         [HttpPost("verify-code")]//4 reqemli kod duzdurse
 
         public IActionResult VerifyCode(VerifyCodeDto model)
         {
-            if (_verificationCodes.TryGetValue(model.Email, out var code) )
+            if (_verificationCodes.TryGetValue(model.Email, out var code))
             {
-                return Ok(new {Result=true,Message= "Code verified" });
+                return Ok(new { Result = true, Message = "Code verified" });
             }
-            return Ok(new {Results=false, Message= "Invalid code" });
+            return Ok(new { Results = false, Message = "Invalid code" });
         }
 
         [HttpPost("reset-password")]
@@ -153,7 +153,7 @@ return Ok(new {Result=true,Message= "Verification code sent" });
             if (result.Succeeded)
             {
                 _verificationCodes.Remove(model.Email);
-                return Ok(new {Result=true,Message= "Password reset successful" });
+                return Ok(new { Result = true, Message = "Password reset successful" });
             }
             return Ok(new { Result = false, Message = result.Errors });
         }

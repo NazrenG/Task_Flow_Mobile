@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Task_Flow.Entities.Migrations
 {
     /// <inheritdoc />
-    public partial class Init11 : Migration
+    public partial class Init01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -358,7 +358,7 @@ namespace Task_Flow.Entities.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserTask",
+                name: "UserTasks",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -374,9 +374,9 @@ namespace Task_Flow.Entities.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserTask", x => x.Id);
+                    table.PrimaryKey("PK_UserTasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserTask_AspNetUsers_CreatedById",
+                        name: "FK_UserTasks_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
@@ -681,8 +681,8 @@ namespace Task_Flow.Entities.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserTask_CreatedById",
-                table: "UserTask",
+                name: "IX_UserTasks_CreatedById",
+                table: "UserTasks",
                 column: "CreatedById");
 
             migrationBuilder.CreateIndex(
@@ -751,7 +751,7 @@ namespace Task_Flow.Entities.Migrations
                 name: "TeamMembers");
 
             migrationBuilder.DropTable(
-                name: "UserTask");
+                name: "UserTasks");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

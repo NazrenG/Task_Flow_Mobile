@@ -12,8 +12,8 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    [Migration("20241115220855_Init11")]
-    partial class Init11
+    [Migration("20241116221614_Init02")]
+    partial class Init02
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -375,19 +375,19 @@ namespace Task_Flow.Entities.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("DeadlineReminders")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("FriendshipOffers")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IncomingComments")
+                    b.Property<bool>("InnovationNewProject")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("InternalTeamMessages")
+                    b.Property<bool>("NewTaskWithInProject")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("NewProjectProposals")
+                    b.Property<bool>("ProjectCompletationDate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("TaskDueDate")
                         .HasColumnType("bit");
 
                     b.Property<string>("UserId")
@@ -669,7 +669,7 @@ namespace Task_Flow.Entities.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("UserTask");
+                    b.ToTable("UserTasks");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Work", b =>

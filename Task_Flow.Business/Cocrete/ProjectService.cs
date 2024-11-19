@@ -27,7 +27,7 @@ namespace Task_Flow.Business.Cocrete
 
         public async Task<Project> GetProjectById(int id)
         {
-            return await dal.GetById(p => p.Id == id);
+            return await dal.GetProjectById(id);
         }
 
         public async Task<List<Project>> GetProjects(string userId)

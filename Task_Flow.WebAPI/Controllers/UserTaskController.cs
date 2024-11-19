@@ -113,7 +113,8 @@ namespace Task_Flow.WebAPI.Controllers
                 Priority = value.Priority,
                 Status = "to do",
                 Title = value.Title, 
-                Color=value.Color
+                Color=value.Color,
+                StartTime=value.StartDate
             };
             await userTaskService.Add(item);
             return Ok(item);

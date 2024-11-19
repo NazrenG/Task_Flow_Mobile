@@ -6,7 +6,7 @@ namespace Task_Flow.DataAccess.Abstract
     {
         Task<List<TeamMember>> TeamMembers();
         Task<TeamMember> GetTaskMemberById(int id);
-        Task<List<TeamMember>>GetProjectListByUserIdAsync(string  id);
+        Task<List<TeamMember>>GetProjectListByUserIdAsync(string id);
      Task Add(TeamMember teamMember);
         Task<List<TeamMember>> GetTaskMemberListById(int id);
      Task Update(TeamMember teamMember);
