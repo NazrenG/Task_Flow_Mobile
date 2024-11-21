@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
@@ -11,10 +13,13 @@ namespace Task_Flow.WebAPI.Controllers
     public class QuizController : ControllerBase
     {
         private readonly IQuizService _quizService;
+        private readonly IProjectService _projectService;
+        private readonly ITeamMemberService _memberService;
+        private IUserService _userService;
         private readonly static List<string> OccupationList = new List<string>
         {
              "IT (Programming, Systems)",
-          "Design (Graphic, UI/UX)", 
+          "Design (Graphic, UI/UX)",
           "Human Resources",
           "Software Programming",
           "Backend Developer",
@@ -29,9 +34,12 @@ namespace Task_Flow.WebAPI.Controllers
           "Education",
           "Other (please specify)"
         };
-        public QuizController(IQuizService quizService)
+        public QuizController(IQuizService quizService, IProjectService projectService, ITeamMemberService memberService, IUserService userService)
         {
             _quizService = quizService;
+            _projectService = projectService;
+            _userService = userService;
+            _memberService = memberService;
         }
 
         //occupation statistic
@@ -46,7 +54,7 @@ namespace Task_Flow.WebAPI.Controllers
             foreach (var item in OccupationList)
             {
                 var count = await _quizService.SpecialOccupationCount(item);
-                var percentage = totalCount > 0 ? Math.Round(count * 100m / totalCount, 2) : 0; 
+                var percentage = totalCount > 0 ? Math.Round(count * 100m / totalCount, 2) : 0;
                 occupationStatistics.Add(new OccupationStatisticDto
                 {
                     OccupationName = item,
@@ -80,6 +88,64 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(professionStatistics);
         }
 
+        [Authorize]
+        [HttpGet("OccupationStatisticInProjects")]
+        public async Task<IActionResult> GetOccupationStatisticInProjects()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated." });
+            }
+             
+            var userProjects = await _projectService.GetProjects(userId);
+            if (userProjects == null || !userProjects.Any())
+            {
+                // Eğer kullanıcının projesi yoksa, tüm meslekler %0 olarak dönecek
+                var emptyStatistics = OccupationList.Select(occupation => new OccupationStatisticDto
+                {
+                    OccupationName = occupation,
+                    Percentage = 0
+                }).ToList();
+                return Ok(emptyStatistics);
+            }
+
+            // Proje Id'lerini al
+            var projectIds = userProjects.Select(p => p.Id).ToList();
+
+            // Projelerdeki üyeleri al
+            var members = await _memberService.GetUsersByProjectIdsAsync(projectIds);
+
+            // Eğer üyeler yoksa, tüm meslekler %0 olarak dönecek
+            if (members == null || !members.Any())
+            {
+                var emptyStatistics = OccupationList.Select(occupation => new OccupationStatisticDto
+                {
+                    OccupationName = occupation,
+                    Percentage = 0
+                }).ToList();
+                return Ok(emptyStatistics);
+            }
+
+            // Meslek istatistiklerini oluştur
+            var totalCount = members.Count;
+            var occupationStatistics = OccupationList.Select(occupation =>
+            {
+                var count = members.Count(m => m.Occupation == occupation);
+                var percentage = totalCount > 0 ? Math.Round(count * 100m / totalCount, 2) : 0;
+                return new OccupationStatisticDto
+                {
+                    OccupationName = occupation,
+                    Percentage = percentage
+                };
+            }).ToList();
+
+            return Ok(occupationStatistics);
+        }
+
+
+
+
 
         // put api/<QuizController>
         [HttpPut("Profession")]
@@ -103,7 +169,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _quizService.Update(last);
             return Ok();
         }
-    
+
 
     }
 }

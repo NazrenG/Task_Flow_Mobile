@@ -1,4 +1,5 @@
-﻿using Task_Flow.DataAccess.Abstract;
+﻿using Microsoft.EntityFrameworkCore;
+using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
 namespace Task_Flow.Business.Cocrete
@@ -24,7 +25,8 @@ namespace Task_Flow.Business.Cocrete
 
         public async Task<List<TeamMember>> GetTaskMemberListById(int id)
         {
-            return await dal.GetAll(f=>f.ProjectId==id);
+            var list = await dal.GetTeamMembers();
+            return list.Where(p=>p.ProjectId==id).ToList();
         }
 
 
@@ -49,6 +51,14 @@ namespace Task_Flow.Business.Cocrete
             await dal.Delete(teamMember);
         }
 
+        public async Task<List<CustomUser>> GetUsersByProjectIdsAsync(List<int> projectIds)
+        {
+            var items = await dal.GetAll();
+            return   items 
+                .Where(pa => projectIds.Contains(pa.ProjectId))
+                .Select(pa => pa.User)  
+                .ToList();
+        }
 
     }
 }

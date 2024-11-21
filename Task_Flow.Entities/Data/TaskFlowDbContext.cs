@@ -77,7 +77,11 @@ namespace Task_Flow.Entities.Data
                 .WithMany(p => p.TeamMembers)
                 .HasForeignKey(tm => tm.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            modelBuilder.Entity<RecentActivity>()
+       .HasOne(ra => ra.User)
+       .WithMany(u => u.RecentActivities)
+       .HasForeignKey(ra => ra.UserId)
+       .OnDelete(DeleteBehavior.Cascade);
             base.OnModelCreating(modelBuilder);
         }
 

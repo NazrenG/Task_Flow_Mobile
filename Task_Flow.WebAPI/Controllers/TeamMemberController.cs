@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
@@ -142,6 +143,19 @@ namespace Task_Flow.WebAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
             }
         }
+        [HttpGet("GetUsersByProject/{projectId}")]//nezrin
+        public async Task<IActionResult> GetUsersByProject(int projectId)
+        {
+            var users = await _teamMemberService.GetTaskMemberListById(projectId);
+            var list=users.Select(tm=> new TeamUserDto
+            {   Id = tm.UserId,
+                    Name =$"{tm.User.UserName}" ,
+
+            }).ToList();
+         
+            return Ok(list);
+        }
+ 
 
 
     }

@@ -12,5 +12,6 @@ namespace Task_Flow.Business.Abstract
         Task<List<UserTask>> GetToDoTask(string userId);
         Task<List<UserTask>> GetInProgressTask(string userId);
         Task<List<UserTask>> GetDoneTask(string userId);
+        Task<bool> CheckTaskName(string title);
     }
 }

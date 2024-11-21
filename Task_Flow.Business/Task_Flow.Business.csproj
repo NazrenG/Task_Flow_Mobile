@@ -26,8 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Task_Flow.DataAccess\Task_Flow.DataAccess.csproj" />
-    <ProjectReference Include="..\Task_Flow.Entities\Task_Flow.Entities.csproj" />
+    <ProjectReference Include="..\Task_Flow.DataAccess\Task_Flow.DataAccess.csproj" /> 
   </ItemGroup>
 
 </Project>

@@ -75,6 +75,12 @@ namespace Task_Flow.Business.Cocrete
 
         }
 
+        public async Task<string> GetProjectNameById(int id)
+        {
+            var item= await dal.GetProjectById(id);
+            return item.Title;
+        }
+
         //public async Task<string> GetProjectByName(int projecId)
         //{
         //    var name= await dal.GetById(p => p.Id == projecId);

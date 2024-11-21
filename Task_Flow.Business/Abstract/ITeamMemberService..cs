@@ -11,5 +11,6 @@ namespace Task_Flow.DataAccess.Abstract
         Task<List<TeamMember>> GetTaskMemberListById(int id);
      Task Update(TeamMember teamMember);
      Task Delete(TeamMember teamMember);
+        Task<List<CustomUser>> GetUsersByProjectIdsAsync(List<int> projectIds);
     }
 }

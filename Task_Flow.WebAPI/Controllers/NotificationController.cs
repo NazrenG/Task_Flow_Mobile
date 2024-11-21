@@ -8,6 +8,9 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -23,9 +26,10 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IRequestNotificationService requestNotificationService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IFriendService friendService;
-        private readonly MailService mailService; 
+        private readonly MailService mailService;
+        private readonly IHubContext<ConnectionHub> _context;
 
-        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService, IHubContext<ConnectionHub> context)
         {
             this.notificationService = notificationService;
             this.userService = userService;
@@ -35,7 +39,7 @@ namespace Task_Flow.WebAPI.Controllers
             _userManager = userManager;
             this.friendService = friendService;
             this.mailService = mailService;
-            
+            _context = context;
         }
 
         [Authorize]
@@ -351,7 +355,8 @@ namespace Task_Flow.WebAPI.Controllers
             };
 
             await requestNotificationService.Add(item);
-            if(dto.NotificationType== "FriendRequest")
+            await _context.Clients.User(userId).SendAsync("DashboardNotificationCount");
+            if (dto.NotificationType== "FriendRequest")
             {
    mailService.SendEmail(receiverUser.Email, $"You have new friendship request to {sender.Firstname} {sender.Lastname} ");
 

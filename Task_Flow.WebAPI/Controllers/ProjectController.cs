@@ -178,9 +178,13 @@ namespace Task_Flow.WebAPI.Controllers
                     Title = p.Title,
                     StartDate = p.StartTime,
                     Color = p.Color,  
-                    ParticipantPath = p.CreatedBy.Image,
-                    ParticipantName = $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}",
-                    ParticipantEmail=p.CreatedBy.Email,
+                 
+
+                    ParticipantPath = p.CreatedBy?.Image ?? "default-path.png", // Null kontrolü
+                    ParticipantName = p.CreatedBy != null
+            ? $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}"
+            : "Unknown Participant",
+                    ParticipantEmail = p.CreatedBy?.Email ?? "unknown@example.com",
                 };
             }).ToList();
             return Ok(items);

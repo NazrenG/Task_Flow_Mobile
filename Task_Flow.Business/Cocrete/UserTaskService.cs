@@ -21,6 +21,13 @@ namespace Task_Flow.Business.Cocrete
 
         }
 
+        public async Task<bool> CheckTaskName(string title)
+        {
+
+            var list = await taskAssignDal.GetAll();
+            return list.Any(p=>p.Title == title);   //varsa-true
+        }
+
         public async Task Delete(UserTask assign)
         {
             await taskAssignDal.Delete(assign);
