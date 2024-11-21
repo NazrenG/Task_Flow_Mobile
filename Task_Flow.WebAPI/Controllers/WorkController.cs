@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
+using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 using Task_Flow.WebAPI.Hubs;
@@ -24,17 +25,21 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly MailService mailService;
         private readonly INotificationService notificationService;
         private readonly IHubContext<ConnectionHub> _context;
+        private readonly TaskFlowDbContext _dbContext;
 
-        public WorkController(IHubContext<ConnectionHub> hub,  INotificationService notificationService, MailService mail,ITaskService taskService, IUserService userService, UserManager<CustomUser> userManager, IProjectService projectService)
+        public WorkController(ITaskService taskService, IUserService userService, UserManager<CustomUser> userManager, IProjectService projectService, MailService mailService, INotificationService notificationService, IHubContext<ConnectionHub> context, TaskFlowDbContext dbContext)
         {
             this.taskService = taskService;
             this.userService = userService;
             _userManager = userManager;
             this.projectService = projectService;
-            mailService = mail;
+            this.mailService = mailService;
             this.notificationService = notificationService;
-            _context = hub;
+            _context = context;
+            _dbContext = dbContext;
         }
+
+
 
 
 
@@ -411,6 +416,46 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(tasks.Count);
 
         }
+
+        [Authorize] 
+        [HttpGet("UserWorks")]
+        public async Task<IActionResult> GetUserWorks()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var works = await _dbContext.Works
+                .Include(w => w.Project)
+                .Include(w => w.CreatedBy) 
+                .Where(w => w.Project.CreatedById == userId)
+                .ToListAsync();
+
+            if (works == null || !works.Any())
+            {
+                return NotFound("No works found for the current user.");
+            }
+
+            var dtoList = works.Select(work => new WorkDetailsDto
+            {
+                    TaskId=work.Id,
+                ProjectId=work.ProjectId,
+                ProjectName = work.Project?.Title,
+                MemberName =$"{work.CreatedBy?.Firstname} {work.CreatedBy?.Lastname}" ,  
+                MemberImage = work.CreatedBy?.Image,  
+                MemberMail = work.CreatedBy?.Email,  
+                TaskTitle = work.Title,
+                StartTime = work.StartTime ?? DateTime.Now,
+                Deadline = work.Deadline,
+                Status = work.Status,
+                Priority = work.Priority
+            }).ToList();
+
+            return Ok(dtoList);
+        }
+
 
     }
 }

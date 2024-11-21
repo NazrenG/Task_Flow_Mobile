@@ -355,6 +355,7 @@ namespace Task_Flow.WebAPI.Controllers
             };
 
             await requestNotificationService.Add(item);
+            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequest4", $"{sender.UserName} has sent you a friend request.");
             await _context.Clients.User(userId).SendAsync("DashboardNotificationCount");
             if (dto.NotificationType== "FriendRequest")
             {

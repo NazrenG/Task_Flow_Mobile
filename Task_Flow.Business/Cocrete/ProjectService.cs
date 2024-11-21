@@ -54,7 +54,9 @@ namespace Task_Flow.Business.Cocrete
 
         public async Task<List<Project>> GetOnGoingProject(string userId)
         {
-            return await dal.GetAll(u => u.CreatedById == userId && u.Status!.ToLower() == "on going");
+            var items = await dal.GetAllProjects();
+            return   items.Where(u => u.CreatedById == userId && u.Status!.ToLower() == "on going").ToList();
+           
         }
 
         public async Task<List<Project>> GetPendingProject(string userId)

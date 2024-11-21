@@ -53,10 +53,11 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 Id = p.Id,
                 Title = p.Title,
+                Deadline=p.EndDate,
                 TotalTask = p.TaskForUsers.Count,
                 CompletedTask = p.TaskForUsers.Count(t => t.Status == "done"),
-                ParticipantsPath = p.TeamMembers
-                            .Select(tm => tm.User.Image)
+                ParticipantsPath = p.TeamMembers!
+                            .Select(tm => tm.User.Image)!
                             .ToList(),
                 Color = p.Color,
             }).ToList();
@@ -360,8 +361,17 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized("Invalid token or user not found.");
             }
+           
             var projects = await _projectService.GetOnGoingProject(userId);
-            return Ok(projects);
+            var list = projects.Select(p => new
+            {
+                Title = p.Title,
+                EndDate = p.EndDate,
+                StartDate = p.StartDate,
+                MembersPath = p.TeamMembers!.Select(tm => tm.User?.Image)!
+                        .ToList(),
+            });
+            return Ok(list);
 
         }
         [Authorize]
