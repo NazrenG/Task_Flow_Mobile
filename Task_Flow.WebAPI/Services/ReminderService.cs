@@ -61,8 +61,10 @@ namespace Task_Flow.WebAPI.Services
                                     IsCalendarMessage = true,
                                     Text = $"{task.Title} judicial mission almost over",
                                     UserId = user.Id
-                                });
-                                await _context.Clients.User(user.Id).SendAsync("DashboardNotificationCount");
+                                }); 
+                             //   await _context.Clients.User(user.Id).SendAsync("ReminderRequestList");
+                                await _context.Clients.User(user.Id).SendAsync("CalendarNotificationCount");
+                             //   await _context.Clients.User(user.Id).SendAsync("CalendarNotificationList2");
                             }
                         }
                     }
@@ -88,6 +90,9 @@ namespace Task_Flow.WebAPI.Services
                                 Text = $"{task.Title} judicial mission almost over",
                                 UserId = user.Id
                             });
+                          //  await _context.Clients.User(user.Id).SendAsync("ReminderRequestList");
+                            await _context.Clients.User(user.Id).SendAsync("CalendarNotificationCount");
+                          //  await _context.Clients.User(user.Id).SendAsync("CalendarNotificationList2");
                         }
                     }
 

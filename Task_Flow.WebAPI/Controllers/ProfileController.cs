@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
@@ -176,7 +177,9 @@ namespace Task_Flow.WebAPI.Controllers
 
             user.IsOnline = false;
             await _userService.Update(user);
+        
             await _signInManager.SignOutAsync();
+
             await _hubContext.Clients.All.SendAsync("UserDisconnected", user.UserName);
 
             return Ok(new { message = "Logout successful" });
@@ -216,6 +219,9 @@ namespace Task_Flow.WebAPI.Controllers
             user.Gender = dto.Gender;
 
             await _userService.Update(user);
+            await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
+            await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+
             return Ok(new { message = "Edit successful" });
         }
 
@@ -246,6 +252,8 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             await _userService.Update(user);
+            await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated"); 
+            await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "Edit successful" });
         }
 
@@ -259,9 +267,9 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "Invalid data provided." });
             }
 
-            
 
-          
+
+
             return Ok(new { message = "Add occupation successful" });
         }
 

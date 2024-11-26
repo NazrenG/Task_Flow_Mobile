@@ -126,16 +126,20 @@ namespace Task_Flow.WebAPI.Controllers
             var project = new ProjectDto
             {
                 Owner = item.CreatedBy?.UserName,
+                OwnerMail=item.CreatedBy?.Email,    
                 IsCompleted = item.IsCompleted,
                 Description = item.Description,
                 Title = item.Title,
                 Color = item.Color,
                 StartDate = item.StartDate,
                 EndDate = item.EndDate,
+                Status = item.Status,  
+               
             };
 
             var teamMembers = await _teamMemberService.GetTaskMemberListById(id);
             var memberUsernames = new List<string>();
+            var membersPath=new List<string>(); 
 
             foreach (var teamMember in teamMembers)
             {
@@ -143,10 +147,12 @@ namespace Task_Flow.WebAPI.Controllers
                 if (user != null)
                 {
                     memberUsernames.Add(user.UserName);
+                    membersPath.Add(user.Image); 
                 }
             }
 
             project.Members = memberUsernames;
+           project.MembersPath = membersPath;
 
             return Ok(project);
         }
@@ -181,7 +187,7 @@ namespace Task_Flow.WebAPI.Controllers
                     Color = p.Color,  
                  
 
-                    ParticipantPath = p.CreatedBy?.Image ?? "default-path.png", // Null kontrolü
+                    ParticipantPath = p.CreatedBy?.Image ?? "default-path.png",  
                     ParticipantName = p.CreatedBy != null
             ? $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}"
             : "Unknown Participant",
@@ -370,6 +376,7 @@ namespace Task_Flow.WebAPI.Controllers
                 StartDate = p.StartDate,
                 MembersPath = p.TeamMembers!.Select(tm => tm.User?.Image)!
                         .ToList(),
+                        Color= p.Color, 
             });
             return Ok(list);
 

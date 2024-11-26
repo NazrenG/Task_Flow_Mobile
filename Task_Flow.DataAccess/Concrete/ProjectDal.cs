@@ -17,14 +17,14 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Project>> GetAllProjects()
         {
-            return await _db.Projects.Include(p => p.TaskForUsers) 
+            return await _db.Projects.Include(p => p.TaskForUsers) .Include(u => u.CreatedBy)
                    .Include(o => o.TeamMembers)  
                        .ThenInclude(tm => tm.User).ToListAsync();
         }
 
         public async Task<Project> GetProjectById(int projectId)
         {
-           return   _db.Projects.Include(p => p.TaskForUsers)
+           return   _db.Projects.Include(u=>u.CreatedBy).Include(p => p.TaskForUsers)
                    .Include(o => o.TeamMembers)
                        .ThenInclude(tm => tm.User).FirstOrDefault(p=>p.Id==projectId);
         }

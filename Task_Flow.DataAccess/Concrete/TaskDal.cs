@@ -17,7 +17,7 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Work>> GetAllTask()
         {
-          return await _context.Works.Include(p=>p.Project).ToListAsync();  
+            return await _context.Works.Include(p => p.Project).Include(w => w.CreatedBy).ToListAsync();
 
         }
 
@@ -29,7 +29,7 @@ namespace Task_Flow.DataAccess.Concrete
             var tasks = await _context.Works
                 .Where(work => work.ProjectId == projectId
                                && work.StartTime >= startDate
-                               &&work.StartTime<endDate)
+                               && work.StartTime < endDate)
                 .ToListAsync();
 
 
@@ -41,5 +41,5 @@ namespace Task_Flow.DataAccess.Concrete
 
             return list;
         }
-        }
+    }
 }

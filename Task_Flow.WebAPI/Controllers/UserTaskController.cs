@@ -160,6 +160,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _context.Clients.User(userId).SendAsync("TaskTotalCount");
 
             await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
+            await _context.Clients.User(userId).SendAsync("UserTaskList");
 
 
             return Ok(item);

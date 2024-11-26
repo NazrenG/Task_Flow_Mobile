@@ -249,6 +249,8 @@ namespace Task_Flow.WebAPI.Controllers
             item.InnovationNewProject = dto.InnovationNewProject;
             item.TaskDueDate = dto.TaskDueDate;
             await notificationSettingService.Update(item);
+            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+
 
             return Ok(new { success = true, message = "Update successful" });
         }
@@ -355,8 +357,10 @@ namespace Task_Flow.WebAPI.Controllers
             };
 
             await requestNotificationService.Add(item);
-            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequest4", $"{sender.UserName} has sent you a friend request.");
-            await _context.Clients.User(userId).SendAsync("DashboardNotificationCount");
+            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequest4");
+            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequestList2");
+            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequestList");
+       
             if (dto.NotificationType== "FriendRequest")
             {
    mailService.SendEmail(receiverUser.Email, $"You have new friendship request to {sender.Firstname} {sender.Lastname} ");
@@ -377,13 +381,20 @@ namespace Task_Flow.WebAPI.Controllers
                 }
             });
         }
+        [Authorize]
         [HttpDelete("DeleteRequestNotification/{requestId}")]
         public async Task<IActionResult> DeleteRequestNotification(int requestId)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
 
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }
             await requestNotificationService.Delete(request);
+            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "delete request notification succesfully" });
         }
         [Authorize]
@@ -399,6 +410,8 @@ namespace Task_Flow.WebAPI.Controllers
             if (request == null) { return BadRequest(new { message = "request not found" }); }
             request.IsAccepted = true;
             await requestNotificationService.Update(request);
+           
+            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             await friendService.Add(new Friend
             {
                 UserId = request.SenderId,

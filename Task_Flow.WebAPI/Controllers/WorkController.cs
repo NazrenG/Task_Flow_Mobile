@@ -248,6 +248,7 @@ namespace Task_Flow.WebAPI.Controllers
                 ProjectId = value.ProjectId,
             };
             await taskService.Add(item);
+             await _context.Clients.User(member.Id).SendAsync("UserTaskList");
             await notificationService.Add(new Notification
             { 
                 UserId = value.CreatedById,
@@ -446,6 +447,42 @@ namespace Task_Flow.WebAPI.Controllers
                 MemberName =$"{work.CreatedBy?.Firstname} {work.CreatedBy?.Lastname}" ,  
                 MemberImage = work.CreatedBy?.Image,  
                 MemberMail = work.CreatedBy?.Email,  
+                TaskTitle = work.Title,
+                StartTime = work.StartTime ?? DateTime.Now,
+                Deadline = work.Deadline,
+                Status = work.Status,
+                Priority = work.Priority
+            }).ToList();
+
+            return Ok(dtoList);
+        }
+
+        [Authorize]
+        [HttpGet("ProjectWorks/{projectId}")]
+        public async Task<IActionResult> GetProjectWorks(int projectId)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var works = await taskService.GetByProjectId(projectId);
+             
+
+            if (works == null || !works.Any())
+            {
+                return NotFound("No works found for the current user.");
+            }
+
+            var dtoList = works.Select(work => new WorkDetailsDto
+            {
+                TaskId = work.Id,
+                ProjectId = work.ProjectId,
+                ProjectName = work.Project?.Title,
+                MemberName = $"{work.CreatedBy?.Firstname} {work.CreatedBy?.Lastname}",
+                MemberImage = work.CreatedBy?.Image,
+                MemberMail = work.CreatedBy?.Email,
                 TaskTitle = work.Title,
                 StartTime = work.StartTime ?? DateTime.Now,
                 Deadline = work.Deadline,

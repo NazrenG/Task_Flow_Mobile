@@ -149,7 +149,11 @@ namespace Task_Flow.WebAPI.Controllers
             var users = await _teamMemberService.GetTaskMemberListById(projectId);
             var list=users.Select(tm=> new TeamUserDto
             {   Id = tm.UserId,
-                    Name =$"{tm.User.UserName}" ,
+                    Name =$"{tm.User.Firstname} {tm.User.Lastname}" ,
+                    Phone=tm.User.PhoneNumber,
+                    Occupation=tm.User.Occupation,
+                    Email=tm.User.Email,
+                    Photo=tm.User.Image,IsOnline=tm.User.IsOnline,
 
             }).ToList();
          

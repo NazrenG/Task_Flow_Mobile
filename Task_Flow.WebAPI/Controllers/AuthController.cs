@@ -101,9 +101,13 @@ namespace Task_Flow.WebAPI.Controllers
                 }
 
                 var token = GetToken(authClaims);
-                user.Occupation = "Other (please specify)";
-                await _userService.Update(user);
-                await _context.Clients.User(user.Id).SendAsync("TotalClientsUpdated");
+                if (user.Occupation == null)
+                {
+                    user.Occupation = "Other (please specify)";
+                    await _userService.Update(user);
+                }
+             //   await _context.Clients.User(user.Id).SendAsync("TotalClientsUpdated");
+              //  await _context.Clients.User(user.Id).SendAsync("RecentActivityUpdate");
                 return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo });
             }
 
