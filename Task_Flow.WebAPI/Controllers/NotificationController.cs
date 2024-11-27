@@ -8,6 +8,9 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using Task_Flow.WebAPI.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Task_Flow.WebAPI.Hubs;
 
@@ -252,6 +255,8 @@ namespace Task_Flow.WebAPI.Controllers
             item.InnovationNewProject = dto.InnovationNewProject;
             item.TaskDueDate = dto.TaskDueDate;
             await notificationSettingService.Update(item);
+            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+
 
             return Ok(new { success = true, message = "Update successful" });
         }
@@ -379,9 +384,15 @@ namespace Task_Flow.WebAPI.Controllers
                 }
             });
         }
+        [Authorize]
         [HttpDelete("DeleteRequestNotification/{requestId}")]
         public async Task<IActionResult> DeleteRequestNotification(int requestId)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "user not found" });
+            }
 
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }

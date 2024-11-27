@@ -13,5 +13,6 @@ namespace Task_Flow.Business.Abstract
         //Task Update(Work task);
         Task<List<ProjectActivity>> GetAllByProjectId(int projectId);
         Task Delete(ProjectActivity projectActivity);
+        Task<List<ProjectActivity>> GetAll();
     }
 }

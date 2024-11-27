@@ -25,7 +25,8 @@ namespace Task_Flow.Business.Cocrete
 
         public async Task<List<Work>> GetByProjectId(int projectId)
         {
-            return await dal.GetAll(t => t.ProjectId == projectId);
+            var list=await dal.GetAllTask();
+            return list.Where(t => t.ProjectId == projectId).ToList();
         }
 
         public async Task<List<Work>> GetDoneTask(string userId)

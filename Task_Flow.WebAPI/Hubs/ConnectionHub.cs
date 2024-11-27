@@ -108,5 +108,7 @@ namespace Task_Flow.WebAPI.Hubs
             }
             await base.OnDisconnectedAsync(exception);
         }
+
+        
     }
 }

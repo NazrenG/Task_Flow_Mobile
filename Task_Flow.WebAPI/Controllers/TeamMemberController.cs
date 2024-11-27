@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore.Storage;
 using MimeKit;
+=======
+using Microsoft.EntityFrameworkCore;
+>>>>>>> 9d28d308cdc1dceaeb3ed2be786e38c681ab9823
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
@@ -169,6 +173,23 @@ namespace Task_Flow.WebAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
             }
         }
+        [HttpGet("GetUsersByProject/{projectId}")]//nezrin
+        public async Task<IActionResult> GetUsersByProject(int projectId)
+        {
+            var users = await _teamMemberService.GetTaskMemberListById(projectId);
+            var list=users.Select(tm=> new TeamUserDto
+            {   Id = tm.UserId,
+                    Name =$"{tm.User.Firstname} {tm.User.Lastname}" ,
+                    Phone=tm.User.PhoneNumber,
+                    Occupation=tm.User.Occupation,
+                    Email=tm.User.Email,
+                    Photo=tm.User.Image,IsOnline=tm.User.IsOnline,
+
+            }).ToList();
+         
+            return Ok(list);
+        }
+ 
 
         [Authorize]
         [HttpPost("TeamMemberCollections")]///Sevgi

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,15 @@ namespace Task_Flow.DataAccess.Concrete
 {
     public class ProjectActivityDal : EFEntityBaseRepository<TaskFlowDbContext, ProjectActivity>, IProjectActivityDal
     {
-        public ProjectActivityDal(TaskFlowDbContext context) : base(context)
+        private readonly TaskFlowDbContext _db;
+        public ProjectActivityDal(TaskFlowDbContext context,TaskFlowDbContext taskFlowDb) : base(context)
         {
+            _db = taskFlowDb;
+        }
+
+        public async Task<List<ProjectActivity>> GetAllProjectActivities()
+        {
+           return await _db.ProjectActivities.Include(p=>p.User).Include(u=>u.Project).ToListAsync();
         }
     }
 }

@@ -60,10 +60,11 @@ namespace Task_Flow.WebAPI.Controllers
                 EndDate = p.EndDate,
                 StartDate = p.StartDate,
                 Title = p.Title,
+                Deadline=p.EndDate,
                 TotalTask = p.TaskForUsers.Count,
                 CompletedTask = p.TaskForUsers.Count(t => t.Status == "done"),
-                ParticipantsPath = p.TeamMembers
-                            .Select(tm => tm.User.Image)
+                ParticipantsPath = p.TeamMembers!
+                            .Select(tm => tm.User.Image)!
                             .ToList(),
                 Color = p.Color,
 
@@ -133,16 +134,20 @@ namespace Task_Flow.WebAPI.Controllers
             var project = new ProjectDto
             {
                 Owner = item.CreatedBy?.UserName,
+                OwnerMail=item.CreatedBy?.Email,    
                 IsCompleted = item.IsCompleted,
                 Description = item.Description,
                 Title = item.Title,
                 Color = item.Color,
                 StartDate = item.StartDate,
                 EndDate = item.EndDate,
+                Status = item.Status,  
+               
             };
 
             var teamMembers = await _teamMemberService.GetTaskMemberListById(id);
             var memberUsernames = new List<string>();
+            var membersPath=new List<string>(); 
 
             foreach (var teamMember in teamMembers)
             {
@@ -150,10 +155,12 @@ namespace Task_Flow.WebAPI.Controllers
                 if (user != null)
                 {
                     memberUsernames.Add(user.UserName);
+                    membersPath.Add(user.Image); 
                 }
             }
 
             project.Members = memberUsernames;
+           project.MembersPath = membersPath;
 
             return Ok(project);
         }
@@ -172,7 +179,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return NotFound();
             }
             var projectTasks = await _taskService.GetByProjectId(projectId);
-
+             
             var items = projectTasks.Select(p =>
             {
                 return new CanbanTaskDto
@@ -185,10 +192,14 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     StartDate = p.StartTime,
-                    Color = p.Color,
-                    ParticipantPath = p.CreatedBy.Image,
-                    ParticipantName = $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}",
-                    ParticipantEmail = p.CreatedBy.Email,
+                    Color = p.Color,  
+                 
+
+                    ParticipantPath = p.CreatedBy?.Image ?? "default-path.png",  
+                    ParticipantName = p.CreatedBy != null
+            ? $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}"
+            : "Unknown Participant",
+                    ParticipantEmail = p.CreatedBy?.Email ?? "unknown@example.com",
                 };
             }).ToList();
             return Ok(items);
@@ -400,8 +411,18 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Unauthorized("Invalid token or user not found.");
             }
+           
             var projects = await _projectService.GetOnGoingProject(userId);
-            return Ok(projects);
+            var list = projects.Select(p => new
+            {
+                Title = p.Title,
+                EndDate = p.EndDate,
+                StartDate = p.StartDate,
+                MembersPath = p.TeamMembers!.Select(tm => tm.User?.Image)!
+                        .ToList(),
+                        Color= p.Color, 
+            });
+            return Ok(list);
 
         }
         [Authorize]

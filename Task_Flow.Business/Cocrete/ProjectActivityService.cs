@@ -28,9 +28,16 @@ namespace Task_Flow.Business.Cocrete
             await dal.Delete(projectActivity);
         }
 
+        public async Task<List<ProjectActivity>> GetAll()
+        {
+         return  await  dal.GetAllProjectActivities();
+        }
+
         public async Task<List<ProjectActivity>> GetAllByProjectId(int projectId)
         {
-            return await dal.GetAll(p => p.ProjectId==projectId);
+            var list= await dal.GetAllProjectActivities();
+
+            return list.FindAll(x => x.ProjectId == projectId);
         }
 
     }

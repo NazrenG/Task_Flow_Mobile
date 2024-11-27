@@ -102,7 +102,13 @@ namespace Task_Flow.WebAPI.Controllers
                 }
 
                 var token = GetToken(authClaims);
-
+                if (user.Occupation == null)
+                {
+                    user.Occupation = "Other (please specify)";
+                    await _userService.Update(user);
+                }
+             //   await _context.Clients.User(user.Id).SendAsync("TotalClientsUpdated");
+              //  await _context.Clients.User(user.Id).SendAsync("RecentActivityUpdate");
                 return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo });
             }
 
@@ -161,6 +167,32 @@ namespace Task_Flow.WebAPI.Controllers
 
             return Ok(count);
         }
+        [Authorize]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User is not authenticated" });
+            }
+             
+            var user = await _userService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            } 
+            var result = await _userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Account deleted successfully" });
+            }
+             
+            return BadRequest(new { message = "Failed to delete account", errors = result.Errors });
+        }
+
 
         [HttpGet("{email}")]
         public async Task<IActionResult> GetUserWithEmail(string email)

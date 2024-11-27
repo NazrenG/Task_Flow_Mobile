@@ -1,11 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
+using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -16,13 +21,26 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITaskService taskService;
         private readonly IUserService userService;
         private readonly UserManager<CustomUser> _userManager;
+        private readonly IProjectService projectService;
+        private readonly MailService mailService;
+        private readonly INotificationService notificationService;
+        private readonly IHubContext<ConnectionHub> _context;
+        private readonly TaskFlowDbContext _dbContext;
 
-        public WorkController(ITaskService taskService, IUserService userService,UserManager<CustomUser> userManager)
+        public WorkController(ITaskService taskService, IUserService userService, UserManager<CustomUser> userManager, IProjectService projectService, MailService mailService, INotificationService notificationService, IHubContext<ConnectionHub> context, TaskFlowDbContext dbContext)
         {
             this.taskService = taskService;
             this.userService = userService;
-            this._userManager = userManager;
+            _userManager = userManager;
+            this.projectService = projectService;
+            this.mailService = mailService;
+            this.notificationService = notificationService;
+            _context = context;
+            _dbContext = dbContext;
         }
+
+
+
 
 
 
@@ -49,8 +67,8 @@ namespace Task_Flow.WebAPI.Controllers
                     Priority = p.Priority,
                     Status = p.Status,
                     Title = p.Title,
-                    ProjectId = p.ProjectId,
-                    StartDate=p.StartTime,
+                    ProjectId = p.ProjectId, 
+                    StartDate =p.StartTime,
                 };
             }).ToList();
             return Ok(items);
@@ -84,29 +102,96 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(items);
         }
 
+        // GET api/<WorkController>/5
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var item = await taskService.GetTaskById(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            var work = new WorkDto
+            {
 
+                CreatedById = userId,
+                Description = item.Description,
+                Deadline = item.Deadline,
+                Priority = item.Priority,
+                Status = item.Status,
+                Title = item.Title,
+                ProjectId = item.ProjectId,
+                StartDate = item.StartTime,
+                Color = item.Color,
+            };
+            return Ok(work);
+        }
 
-        //// GET api/<WorkController>/5
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> Get(int id)
-        //{
-        //    var item = await taskService.GetTaskById(id);
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var work = new WorkDto
-        //    {
-        //        CreatedById = item.CreatedById,
-        //        Description = item.Description,
-        //        Deadline = item.Deadline,
-        //        Priority = item.Priority,
-        //        Status = item.Status,
-        //        Title = item.Title,
-        //        ProjectId = item.ProjectId,
-        //    };
-        //    return Ok(work);
-        //}
+        //// PUT api/<WorkController>/5
+        [Authorize]
+        [HttpPut("EditedProjectTask/{id}")]
+        public async Task<IActionResult> PutProjectTaskByUser(int id, [FromBody] WorkDto value)
+        {
+
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var item = await taskService.GetTaskById(id);
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+            item.Priority = value.Priority;
+            item.Status = value.Status;
+            await taskService.Update(item);
+            await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
+            await _context.Clients.User(userId).SendAsync("RunningTaskCount");
+            await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
+            return Ok(new {message="update succesfuly"});
+        }
+        //canban icinde tasklari edit etmek
+        [Authorize]
+        [HttpPut("EditedProjectForPmTask/{id}")]
+        public async Task<IActionResult> PutProjectForPmTask(int id, [FromBody] WorkDto value)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var item = await taskService.GetTaskById(id);
+            var project=await projectService.GetProjectById(value.ProjectId);
+           
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            if (project.CreatedById != userId) return BadRequest(new { message = "You are not access edit task" });
+
+            item.Title = value.Title;
+            item.Description = value.Description;
+            item.Deadline = value.Deadline;
+            item.Color = value.Color;
+            item.CreatedById = value.CreatedById;
+            item.StartTime = value.StartDate;
+
+            item.Priority = value.Priority;
+            item.Status = value.Status;
+            await taskService.Update(item);
+            return Ok(new { message = "update succesfuly" });
+        }
+
         [Authorize]
         [HttpGet("UserTasksCount")]
         public async Task<IActionResult> GetUserTaskCount()
@@ -146,100 +231,51 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return BadRequest(new { message = "User not authenticated." });
             }
+            var member = await userService.GetUserById(value.CreatedById);
+            var project = await projectService.GetProjectNameById(value.ProjectId);
+            var projectCreater=await projectService.GetProjectById(value.ProjectId);
 
-
+            if(projectCreater.CreatedById!=userId) return BadRequest("You do not have permission to update tasks in this project.");
             var item = new Work
             {
-                CreatedById = userId,
+                CreatedById = value.CreatedById,
                 Description = value.Description,
                 Deadline = value.Deadline,
                 Priority = value.Priority,
                 Status = value.Status,
                 Title = value.Title,
+                Color = value.Color,
                 ProjectId = value.ProjectId,
             };
             await taskService.Add(item);
+             await _context.Clients.User(member.Id).SendAsync("UserTaskList");
+            await notificationService.Add(new Notification
+            { 
+                UserId = value.CreatedById,
+                Text = $"You have a new task in the project named {projectCreater.Title}",
+                IsCalendarMessage=true,
+                
+            }); 
+            await _context.Clients.User(value.CreatedById).SendAsync("DashboardCalendarNotificationCount");
+            mailService.SendEmail(member.Email, $"Hi,{member.Firstname} {member.Lastname}.You have a new task in the project named {project} ");
             return Ok(item);
         }
 
-        //// PUT api/<WorkController>/5
-        //[HttpPut("ChangeTitle/{id}")]
-        //public async Task<IActionResult> PutTitle(int id, [FromBody] string value)
-        //{
-        //    var item = await taskService.GetTaskById(id);
 
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    } 
-        //    //item.Description = value.Description;
-        //    //item.Deadline = value.Deadline;
-        //    //   item.Priority = value.Priority;
-        //    //item.Status = value.Status;
-        //    item.Title = value; 
-        //    await taskService.Update(item);
-        //    return Ok();
-        //}
-        //[HttpPut("ChangeDescription/{id}")]
-        //public async Task<IActionResult> PutDescription(int id, [FromBody] string value)
-        //{
-        //    var item = await taskService.GetTaskById(id);
-
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    item.Description = value; 
-        //    await taskService.Update(item);
-        //    return Ok();
-        //}
-
-        //[HttpPut("ChangeDeadLine/{id}")]
-        //public async Task<IActionResult> PutDeadLine(int id, [FromBody] DateTime value)
-        //{
-        //    var item = await taskService.GetTaskById(id);
-
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    } 
-        //    item.Deadline = value; 
-        //    await taskService.Update(item);
-        //    return Ok();
-        //}
-
-        //[HttpPut("ChangeStatus/{id}")]
-        //public async Task<IActionResult> PutStatus(int id, [FromBody] string value)
-        //{
-        //    var item = await taskService.GetTaskById(id);
-
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    } 
-        //    item.Status = value; 
-        //    await taskService.Update(item);
-        //    return Ok();
-        //}
-        //[HttpPut("ChangePriority/{id}")]
-        //public async Task<IActionResult> PutPriority(int id, [FromBody] string value)
-        //{
-        //    var item = await taskService.GetTaskById(id);
-
-        //    if (item == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //      item.Priority = value; 
-        //    await taskService.Update(item);
-        //    return Ok();
-        //}
 
         // DELETE api/<WorkController>/5
+        [Authorize]
         [HttpDelete("DeleteProjectTask/{taskId}")]
-        public async Task<IActionResult> Delete(int taskId)
+        public async Task<IActionResult> Delete(int taskId, [FromQuery] int projectId)
         {
             var item = await taskService.GetTaskById(taskId);
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var project=await projectService.GetProjectById(projectId);
+            if(project.CreatedById!=userId) return BadRequest("You do not have permission to delete tasks in this project.");
             if (item == null)
             {
                 return NotFound();
@@ -381,6 +417,82 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(tasks.Count);
 
         }
+
+        [Authorize] 
+        [HttpGet("UserWorks")]
+        public async Task<IActionResult> GetUserWorks()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var works = await _dbContext.Works
+                .Include(w => w.Project)
+                .Include(w => w.CreatedBy) 
+                .Where(w => w.Project.CreatedById == userId)
+                .ToListAsync();
+
+            if (works == null || !works.Any())
+            {
+                return NotFound("No works found for the current user.");
+            }
+
+            var dtoList = works.Select(work => new WorkDetailsDto
+            {
+                    TaskId=work.Id,
+                ProjectId=work.ProjectId,
+                ProjectName = work.Project?.Title,
+                MemberName =$"{work.CreatedBy?.Firstname} {work.CreatedBy?.Lastname}" ,  
+                MemberImage = work.CreatedBy?.Image,  
+                MemberMail = work.CreatedBy?.Email,  
+                TaskTitle = work.Title,
+                StartTime = work.StartTime ?? DateTime.Now,
+                Deadline = work.Deadline,
+                Status = work.Status,
+                Priority = work.Priority
+            }).ToList();
+
+            return Ok(dtoList);
+        }
+
+        [Authorize]
+        [HttpGet("ProjectWorks/{projectId}")]
+        public async Task<IActionResult> GetProjectWorks(int projectId)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+
+            var works = await taskService.GetByProjectId(projectId);
+             
+
+            if (works == null || !works.Any())
+            {
+                return NotFound("No works found for the current user.");
+            }
+
+            var dtoList = works.Select(work => new WorkDetailsDto
+            {
+                TaskId = work.Id,
+                ProjectId = work.ProjectId,
+                ProjectName = work.Project?.Title,
+                MemberName = $"{work.CreatedBy?.Firstname} {work.CreatedBy?.Lastname}",
+                MemberImage = work.CreatedBy?.Image,
+                MemberMail = work.CreatedBy?.Email,
+                TaskTitle = work.Title,
+                StartTime = work.StartTime ?? DateTime.Now,
+                Deadline = work.Deadline,
+                Status = work.Status,
+                Priority = work.Priority
+            }).ToList();
+
+            return Ok(dtoList);
+        }
+
 
     }
 }
