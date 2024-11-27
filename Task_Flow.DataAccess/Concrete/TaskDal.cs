@@ -17,7 +17,7 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Work>> GetAllTask()
         {
-            return await _context.Works.Include(p => p.Project).Include(w => w.CreatedBy).ToListAsync();
+            return await _context.Works.Include(p => p.Project).Include(w => w.CreatedBy).Include(t=>t.TaskAssignees).ToListAsync();
 
         }
 

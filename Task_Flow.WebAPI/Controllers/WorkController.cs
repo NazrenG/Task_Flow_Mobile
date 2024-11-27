@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
@@ -26,8 +27,12 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly INotificationService notificationService;
         private readonly IHubContext<ConnectionHub> _context;
         private readonly TaskFlowDbContext _dbContext;
+        private readonly IProjectActivityService _projectActivityService;   
 
-        public WorkController(ITaskService taskService, IUserService userService, UserManager<CustomUser> userManager, IProjectService projectService, MailService mailService, INotificationService notificationService, IHubContext<ConnectionHub> context, TaskFlowDbContext dbContext)
+        public WorkController(ITaskService taskService, IUserService userService,
+            UserManager<CustomUser> userManager, IProjectService projectService,
+            MailService mailService, INotificationService notificationService,
+            IHubContext<ConnectionHub> context, TaskFlowDbContext dbContext,IProjectActivityService projectActivityService)
         {
             this.taskService = taskService;
             this.userService = userService;
@@ -37,6 +42,8 @@ namespace Task_Flow.WebAPI.Controllers
             this.notificationService = notificationService;
             _context = context;
             _dbContext = dbContext;
+            _projectActivityService = projectActivityService;
+
         }
 
 
@@ -68,6 +75,7 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     ProjectId = p.ProjectId, 
+                    ProjectName = p.Project?.Title, 
                     StartDate =p.StartTime,
                 };
             }).ToList();
@@ -96,6 +104,7 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     ProjectId = p.ProjectId,
+                    ProjectName = p.Project?.Title,
                     StartDate = p.StartTime,
                 };
             }).ToList();
@@ -127,6 +136,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Status = item.Status,
                 Title = item.Title,
                 ProjectId = item.ProjectId,
+                ProjectName = item.Project?.Title,
                 StartDate = item.StartTime,
                 Color = item.Color,
             };
@@ -153,6 +163,14 @@ namespace Task_Flow.WebAPI.Controllers
             item.Priority = value.Priority;
             item.Status = value.Status;
             await taskService.Update(item);
+            await _projectActivityService.Add(new ProjectActivity
+            {
+                UserId = userId,
+                ProjectId = value.ProjectId,
+                Text = $"Task updated successfully. New task name: {value.Title}"
+            });
+
+
             await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
             await _context.Clients.User(userId).SendAsync("RunningTaskCount");
             await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
@@ -189,6 +207,16 @@ namespace Task_Flow.WebAPI.Controllers
             item.Priority = value.Priority;
             item.Status = value.Status;
             await taskService.Update(item);
+
+            var member=await userService.GetUserById(value.CreatedById);
+            await _projectActivityService.Add(new ProjectActivity
+            {
+                UserId = userId,
+                ProjectId = value.ProjectId,
+                Text = $"The task named '{value.Title}' has been successfully updated for {member.Firstname} {member.Lastname}.",
+            });
+            //mail ve request getsin taski edit olan sexse
+
             return Ok(new { message = "update succesfuly" });
         }
 
@@ -255,7 +283,13 @@ namespace Task_Flow.WebAPI.Controllers
                 Text = $"You have a new task in the project named {projectCreater.Title}",
                 IsCalendarMessage=true,
                 
-            }); 
+            });
+            await _projectActivityService.Add(new ProjectActivity
+            {
+                UserId = userId,
+                ProjectId = value.ProjectId,
+                Text = $"A new task named '{value.Title}' has been created for {member.Firstname} {member.Lastname}.",
+            });
             await _context.Clients.User(value.CreatedById).SendAsync("DashboardCalendarNotificationCount");
             mailService.SendEmail(member.Email, $"Hi,{member.Firstname} {member.Lastname}.You have a new task in the project named {project} ");
             return Ok(item);
@@ -281,6 +315,13 @@ namespace Task_Flow.WebAPI.Controllers
                 return NotFound();
             }
             await taskService.Delete(item);
+            await _projectActivityService.Add(new ProjectActivity
+            {
+                UserId = userId,
+                ProjectId = projectId,
+                Text = $"{item.CreatedBy?.Firstname} {item.CreatedBy?.Lastname}`s task delete successfully. New task name:{item.Title} "
+            });
+
             return Ok(new {message="delete succesful"});
         }
         [Authorize]

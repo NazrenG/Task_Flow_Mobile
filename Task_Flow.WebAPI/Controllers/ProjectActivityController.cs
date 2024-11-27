@@ -102,7 +102,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Text = dto.Text,
                 UserId = userId,
                 CreateTime = DateTime.UtcNow,
-
+                ProjectId=dto.ProjectId,    
             };
             var data = await projectService.GetProjectById(dto.ProjectId);
 

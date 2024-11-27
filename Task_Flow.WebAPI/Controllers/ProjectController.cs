@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
@@ -31,6 +33,16 @@ namespace Task_Flow.WebAPI.Controllers
             _taskService = taskService;
             _projectActivity = productActivity;
         }
+
+        [HttpGet("ProjectTitle/{projectId}")]
+        public async Task<IActionResult> GetProjectTitle(int projectId)
+        {
+            var project=await _projectService.GetProjectById(projectId);
+            if(project==null) return NotFound();
+            return Ok(new { Title = project.Title });
+        }
+
+
         [Authorize]
         [HttpGet("ExtendedProjectList")]
         public async Task<IActionResult> GetExtendedProjectList()
@@ -217,6 +229,12 @@ namespace Task_Flow.WebAPI.Controllers
 
             task.Status = updateTaskStatusDto.NewStatus;
             await _taskService.Update(task);
+            await _projectActivity.Add(new ProjectActivity
+            {
+                UserId = userId,
+                ProjectId = task.ProjectId,
+                Text = $"The task named '{task.Title}' has been successfully updated for {task.CreatedBy?.Firstname} {task.CreatedBy?.Lastname}.",
+            });
 
             return Ok("Task status updated successfully.");
         }
