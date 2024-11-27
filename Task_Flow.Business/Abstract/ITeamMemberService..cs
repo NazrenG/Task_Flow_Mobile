@@ -9,6 +9,7 @@ namespace Task_Flow.DataAccess.Abstract
         Task<List<TeamMember>>GetProjectListByUserIdAsync(string id);
      Task Add(TeamMember teamMember);
         Task<List<TeamMember>> GetTaskMemberListById(int id);
+        Task RemoveMembers(List<TeamMember>members);
      Task Update(TeamMember teamMember);
      Task Delete(TeamMember teamMember);
         Task<List<CustomUser>> GetUsersByProjectIdsAsync(List<int> projectIds);

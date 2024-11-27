@@ -18,7 +18,7 @@ namespace Task_Flow.WebAPI.Controllers
             this.messageService = messageService;
         }
 
-        // GET: api/<MessageController>
+        //GET: api/<MessageController>
         [Authorize]
         [HttpGet("UserMessage")]
         public async Task<IActionResult> Get()
@@ -28,7 +28,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return BadRequest("User not authenticated.");
             }
- 
+
 
             var list = await messageService.GetMessages();
             if (list == null) return NotFound();
@@ -62,13 +62,13 @@ namespace Task_Flow.WebAPI.Controllers
             var list = await messageService.GetMessages();
             var items = list.Where(i => i.ReceiverId == userId).OrderByDescending(p => p.Id).Take(2)
                 .Select(c => new
-            {
-                ReceiverName = c.Receiver?.UserName,
-                SenderName = c.Sender?.UserName,
-                Path=c.Sender?.Image,
-                Text = c.Text,
-                SentDate = c.SentDate,
-            });
+                {
+                    ReceiverName = c.Receiver?.UserName,
+                    SenderName = c.Sender?.UserName,
+                    Path = c.Sender?.Image,
+                    Text = c.Text,
+                    SentDate = c.SentDate,
+                });
 
             return Ok(items);
         }
@@ -82,7 +82,7 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetCount()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
+
 
             var list = await messageService.GetMessages();
 

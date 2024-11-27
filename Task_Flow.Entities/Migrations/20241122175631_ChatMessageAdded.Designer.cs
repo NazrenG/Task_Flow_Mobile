@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task_Flow.Entities.Data;
 
@@ -11,9 +12,11 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    partial class TaskFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241122175631_ChatMessageAdded")]
+    partial class ChatMessageAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,7 +179,7 @@ namespace Task_Flow.Entities.Migrations
                     b.ToTable("Chats");
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessage", b =>
+            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessages", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -196,21 +199,12 @@ namespace Task_Flow.Entities.Migrations
                     b.Property<bool>("IsImage")
                         .HasColumnType("bit");
 
-                    b.Property<string>("SenderId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ChatId");
-
-                    b.HasIndex("SenderId");
 
                     b.ToTable("ChatMessages");
                 });
@@ -846,7 +840,7 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("Receiver");
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessage", b =>
+            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessages", b =>
                 {
                     b.HasOne("Task_Flow.Entities.Models.Chat", "Chat")
                         .WithMany("Messages")
@@ -854,13 +848,7 @@ namespace Task_Flow.Entities.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId");
-
                     b.Navigation("Chat");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Comment", b =>
@@ -962,8 +950,7 @@ namespace Task_Flow.Entities.Migrations
                 {
                     b.HasOne("Task_Flow.Entities.Models.CustomUser", "User")
                         .WithMany("RecentActivities")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

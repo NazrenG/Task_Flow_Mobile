@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Task_Flow.Core.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
@@ -8,15 +9,21 @@ namespace Task_Flow.DataAccess.Concrete
 {
     public class TeamMemberDal : EFEntityBaseRepository<TaskFlowDbContext, TeamMember>, ITeamMemberDal
     {
-        private readonly TaskFlowDbContext _db;
-        public TeamMemberDal(TaskFlowDbContext context, TaskFlowDbContext db) : base(context)
+        private readonly TaskFlowDbContext _context;
+        public TeamMemberDal(TaskFlowDbContext context) : base(context)
         {
-            _db = db;   
+            _context = context;
         }
 
-        public async Task<List<TeamMember>> GetTeamMembers()
+        public async Task DeleteAllMembers(List<TeamMember> members)
         {
-          return await _db.TeamMembers.Include(u=>u.User).Include(p=>p.Project).ToListAsync();
+            foreach (var item in members)
+            {
+                var deletedEntity = _context.Entry(item);
+                deletedEntity.State = EntityState.Deleted;
+            }
+                await _context.SaveChangesAsync();
         }
+
     }
 }

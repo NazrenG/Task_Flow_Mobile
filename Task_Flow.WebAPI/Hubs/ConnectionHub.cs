@@ -35,6 +35,12 @@ namespace Task_Flow.WebAPI.Hubs
                
             }
         }
+      
+        public async Task NotifyProjectUpdate(int projectId)
+        {
+            await Clients.All.SendAsync("ReceiveProjectUpdate", projectId);
+        }
+
         public override async Task OnConnectedAsync()
         {
             //var user = await _userManager.GetUserAsync(Context.User);
@@ -69,22 +75,36 @@ namespace Task_Flow.WebAPI.Hubs
 
                     await _userService.Update(currentUser);
 
-                    await Clients.Others.SendAsync("ReceiveConnectInfo");
+                    //await Clients.All.SendAsync("UpdateUserActivity");
                 }
 
             }
         }
 
+        public async Task GetMessages(string receiverId, string senderId)
+        {
+            var friend=await _userManager.FindByIdAsync(receiverId);
+            await Clients.Users(new String[] { receiverId, senderId }).SendAsync("ReceiveMessages",friend.Email);
+        }
+        public async Task UpdateOwnProjectList()
+        {
+            await Clients.All.SendAsync("UpdateProjectList");
+
+        }
+        public async Task SendFollow(string id)
+        {
+            await Clients.User(id).SendAsync("UpdateProfileRequestList");
+        }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var user = await _userManager.GetUserAsync(Context.User);
             if (user != null)
             {
-               
-                    user.IsOnline = false;
-                    await _userService.Update(user);
-                    await Clients.All.SendAsync("DisconnectInfo", $"{user.UserName} has disconnected");
-                
+
+                user.IsOnline = false;
+                await _userService.Update(user);
+                //await Clients.All.SendAsync("UpdateProjectList");
+
             }
             await base.OnDisconnectedAsync(exception);
         }

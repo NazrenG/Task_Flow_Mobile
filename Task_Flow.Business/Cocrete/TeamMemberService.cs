@@ -46,6 +46,13 @@ namespace Task_Flow.Business.Cocrete
             await dal.Update(teamMember);
         }
 
+        public async Task RemoveMembers(List<TeamMember>members)
+        {
+            await dal.DeleteAllMembers(members);
+
+
+        }
+
         public async System.Threading.Tasks.Task Delete(TeamMember teamMember)
         {
             await dal.Delete(teamMember);

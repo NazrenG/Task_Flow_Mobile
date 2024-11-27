@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -16,12 +19,16 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IFriendService friendService;
         private readonly IUserService _userService;
         private readonly UserManager<CustomUser> _userManager;
+        private readonly IRequestNotificationService _requestNotificationService;
+        private readonly IHubContext<ConnectionHub> hubContext;
 
-        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager)
+        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager, IRequestNotificationService requestNotificationService, IHubContext<ConnectionHub> hubContext)
         {
             this.friendService = friendService;
             _userService = userService;
             _userManager = userManager;
+            _requestNotificationService = requestNotificationService;
+            this.hubContext = hubContext;
         }
 
         [Authorize]
@@ -34,32 +41,45 @@ namespace Task_Flow.WebAPI.Controllers
                 return BadRequest(new { message = "User not authenticated." });
             }
 
-            var list = await _userService.GetUsers();
-            var friends = await friendService.GetFriends(userId);
-            var allFriendList = friends.Select(l => l.UserFriendId).ToList();
-            var item = new List<CustomUser>();
-            foreach (var user in list)
+            var myrequests = await _requestNotificationService.GetNotificationsBySenderId(userId);
+
+            var allfriends = await friendService.GetFriends(userId);
+
+            var allusers = await _userService.GetUsers();
+            var users = allusers.Where(u => u.Id != userId)
+            .OrderByDescending(u => u.IsOnline)
+            .Select(u => new FriendDto
             {
-                if (user.Id != userId && !allFriendList.Contains(user.Id))
-                {
-                    item.Add(user);
-                }
-            }
-            var items = item.Select(p =>
-            {
-                return new FriendDto
-                {
-                    Id = p.Id,
-                    FriendName = p.Firstname + " " + p.Lastname,
-                    FriendEmail = p.Email,
-                    FriendOccupation = p.Occupation,
-                    FriendPhone = p.PhoneNumber,
-                    FriendPhoto = p.Image,
-                    IsOnline = p.IsOnline,
-                };
-            });
-            return Ok(items);
+                Id = u.Id,
+                FriendName = u.UserName,
+                IsOnline = u.IsOnline,
+                FriendPhoto = u.Image,
+                FriendEmail = u.Email,
+                HasRequestPending = (myrequests.FirstOrDefault(r => r.ReceiverId == u.Id&& r.NotificationType == "FriendRequest"&&!r.IsAccepted) != null),
+                IsFriend = allfriends.FirstOrDefault(f => f.UserId == u.Id || f.UserFriendId == u.Id) != null
+            }).ToList();
+
+            return Ok(users);
+
+           
+
         }
+
+        [HttpDelete()]
+        public async Task<IActionResult> DeleteRequest(int id)
+        {
+            try
+            {
+                var request = await _requestNotificationService.GetRequestNotificationById(id); 
+               await _requestNotificationService.Delete(request);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
 
         // GET: api/<FriendController>

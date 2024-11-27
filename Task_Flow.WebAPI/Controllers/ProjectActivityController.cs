@@ -27,10 +27,11 @@ namespace Task_Flow.WebAPI.Controllers
             this.hubContext = hubContext;
         }
 
-      
+
         [Authorize]
         [HttpGet("TeamMemberActivities")]
-        public async Task<IActionResult> GetTeamActivities() {
+        public async Task<IActionResult> GetTeamActivities()
+        {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var user=await userService.GetUserById(userId);  
             var listt = await projectActivityService.GetAll();
@@ -112,5 +113,6 @@ namespace Task_Flow.WebAPI.Controllers
 
 
         }
+
     }
 }

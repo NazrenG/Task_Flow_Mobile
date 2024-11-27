@@ -11,6 +11,8 @@ using Task_Flow.WebAPI.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using Task_Flow.WebAPI.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -26,10 +28,12 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IRequestNotificationService requestNotificationService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IFriendService friendService;
+        private readonly IHubContext<ConnectionHub> _hub;
+        private readonly IProjectService projectService;
         private readonly MailService mailService;
-        private readonly IHubContext<ConnectionHub> _context;
+        private readonly ITeamMemberService memberService;
 
-        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService, IHubContext<ConnectionHub> context)
+        public NotificationController(INotificationService notificationService, IUserService userService, INotificationSettingService notificationSettingService, IRecentActivityService recentActivityService, IRequestNotificationService requestNotificationService, UserManager<CustomUser> userManager, IFriendService friendService, MailService mailService, IHubContext<ConnectionHub> hub, ITeamMemberService memberService, IProjectService projectService)
         {
             this.notificationService = notificationService;
             this.userService = userService;
@@ -39,7 +43,9 @@ namespace Task_Flow.WebAPI.Controllers
             _userManager = userManager;
             this.friendService = friendService;
             this.mailService = mailService;
-            _context = context;
+            _hub = hub;
+            this.memberService = memberService;
+            this.projectService = projectService;
         }
 
         [Authorize]
@@ -357,11 +363,8 @@ namespace Task_Flow.WebAPI.Controllers
             };
 
             await requestNotificationService.Add(item);
-            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequest4");
-            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequestList2");
-            await _context.Clients.User(receiverUser.Id).SendAsync("ReceiveFriendRequestList");
-       
-            if (dto.NotificationType== "FriendRequest")
+            await _hub.Clients.User(sender.Id).SendAsync("InwokeSendFollow",receiverUser.Id);
+            if(dto.NotificationType== "FriendRequest")
             {
    mailService.SendEmail(receiverUser.Email, $"You have new friendship request to {sender.Firstname} {sender.Lastname} ");
 
@@ -394,7 +397,7 @@ namespace Task_Flow.WebAPI.Controllers
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }
             await requestNotificationService.Delete(request);
-            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            await _hub.Clients.User(request.SenderId).SendAsync("UpdateUserActivity");
             return Ok(new { message = "delete request notification succesfully" });
         }
         [Authorize]
@@ -409,14 +412,29 @@ namespace Task_Flow.WebAPI.Controllers
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }
             request.IsAccepted = true;
+            
             await requestNotificationService.Update(request);
-           
-            await _context.Clients.User(userId).SendAsync("RecentActivityUpdate1");
-            await friendService.Add(new Friend
+            if(request.NotificationType == "ProjectRequest")
             {
-                UserId = request.SenderId,
-                UserFriendId = userId,
-            });
+                var project = await projectService.GetProjectByName(request.SenderId,request.ProjectName);
+                await memberService.Add(new TeamMember
+                {
+                    ProjectId = project.Id,
+                    UserId=request.ReceiverId
+                });
+
+            }
+            else if(request.NotificationType == "FriendRequest")
+            {
+                await friendService.Add(new Friend
+                {
+                    UserId = request.SenderId,
+                    UserFriendId= userId,
+                });
+
+            }
+            
+            await _hub.Clients.User(request.SenderId).SendAsync("UpdateUserActivity");
 
             return Ok(new { message = "accept request succesfuly" });
         }

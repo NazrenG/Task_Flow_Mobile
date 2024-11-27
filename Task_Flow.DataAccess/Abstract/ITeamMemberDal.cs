@@ -7,5 +7,6 @@ namespace Task_Flow.DataAccess.Abstract
     public interface ITeamMemberDal:IEntityRepository<TeamMember>
     {
         Task<List<TeamMember>> GetTeamMembers();
+        Task DeleteAllMembers(List<TeamMember> members);
     }
 }

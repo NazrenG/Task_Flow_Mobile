@@ -68,6 +68,7 @@ namespace Task_Flow.WebAPI.Controllers
             if (result.Succeeded)
             {
                 await _quizService.Add(new Quiz());
+                //await _context.Clients.All.SendAsync("ClientCountUpdate");
                 return Ok(new { Status = "Success", Message = "User created successfully!" });
             }
 
@@ -190,6 +191,25 @@ namespace Task_Flow.WebAPI.Controllers
             }
              
             return BadRequest(new { message = "Failed to delete account", errors = result.Errors });
+        }
+
+
+        [HttpGet("{email}")]
+        public async Task<IActionResult> GetUserWithEmail(string email)
+        {
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Email is required.");
+            }
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return NotFound($"No user found with the email: {email}");
+            }
+
+            return Ok(user);
         }
 
     }
