@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore.Storage;
 using MimeKit;
-=======
 using Microsoft.EntityFrameworkCore;
->>>>>>> 9d28d308cdc1dceaeb3ed2be786e38c681ab9823
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
