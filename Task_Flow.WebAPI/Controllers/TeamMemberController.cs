@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
+using MimeKit;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
+using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
@@ -15,11 +18,16 @@ namespace Task_Flow.WebAPI.Controllers
 
         private readonly IUserService _userService;
         private readonly ITeamMemberService _teamMemberService;
+        private readonly IProjectService _projectService;
+        private readonly MailService mailService;
+        private readonly  IRequestNotificationService _requestNotificationService;
 
-        public TeamMemberController(ITeamMemberService teamMemberService,IUserService userService)
+        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService)
         {
             _teamMemberService = teamMemberService;
             _userService = userService;
+            _projectService = projectService;
+            _requestNotificationService = requestNotificationService;
         }
 
         [HttpGet("AllMember")]
@@ -108,31 +116,50 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("TeamMemberCollections")]///Sevgi
-        public async Task<IActionResult> AddTeamMembersAsTeam([FromBody] TeamMemberCollectionDto dto)
+        [Authorize]
+        [HttpPost("UpdateTeamMemberCollections")]///Sevgi
+        public async Task<IActionResult> UpdateTeamMembersAsTeam([FromBody] TeamMemberCollectionDto dto)
         {
-            if (dto == null || dto.Members == null || !dto.Members.Any() )
+            if (dto == null || dto.Members == null || !dto.Members.Any())
             {
-                return BadRequest(new { Message = "Invalid input data." });
+                return Ok(new { Message = "No member" });
             }
 
             try
             {
+                var senderId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var sender = await _userService.GetUserById(senderId);
+                var list = await _teamMemberService.GetTaskMemberListById(dto.ProjectId);
+                await _teamMemberService.RemoveMembers(list);
+
                 foreach (var username in dto.Members)
                 {
                     var user = await _userService.GetOneUSerByUsername(username);
+                    var project = await _projectService.GetProjectNameById(dto.ProjectId);
+                    //var isCheck = await _teamMemberService.GetTaskMemberById(user.Id);
                     if (user == null)
                     {
                         return NotFound(new { Message = $"User '{username}' not found." });
                     }
 
-                    var teamMember = new TeamMember
+                    //var teamMember = new TeamMember
+                    //{
+                    //    ProjectId = dto.ProjectId,
+                    //    UserId = user.Id,
+                    //};
+                    var request = new RequestNotification
                     {
-                        ProjectId = dto.ProjectId,
-                        UserId = user.Id,
+                        IsAccepted = false,
+                        ReceiverId = user.Id,
+                        SenderId = senderId,
+                        NotificationType = "ProjectRequest",
+                        ProjectName = project,
+                        SentDate = DateTime.UtcNow,
+                        Text = "Hi, I am " + sender.Firstname + " " + sender.Lastname + ". I want to invite you to my project named: " + project,
                     };
+                    await _requestNotificationService.Add(request);
 
-                    await _teamMemberService.Add(teamMember);
+                    //await _teamMemberService.Add(teamMember);
                 }
 
                 return Ok(new { Message = "Team members added successfully!" });
@@ -141,6 +168,112 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpPost("TeamMemberCollections")]///Sevgi
+        public async Task<IActionResult> AddTeamMembersAsTeam([FromBody] TeamMemberCollectionDto dto)
+        {
+            var senderId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var sender = await _userService.GetUserById(senderId);
+            if (dto == null || dto.Members == null || !dto.Members.Any() )
+            {
+                return Ok(new {Message="No member"});
+            }
+
+            try
+            {
+
+                foreach (var username in dto.Members)
+                {
+                    var user = await _userService.GetOneUSerByUsername(username);
+                    //var isCheck = await _teamMemberService.GetTaskMemberById(user.Id);
+                    if (user == null)
+                    {
+                        return NotFound(new { Message = $"User '{username}' not found." });
+                    }
+
+                    //var teamMember = new TeamMember
+                    //{
+                    //    ProjectId = dto.ProjectId,
+                    //    UserId = user.Id,
+                    //};
+
+                    //await _teamMemberService.Add(teamMember);
+                    var project =await _projectService.GetProjectNameById(dto.ProjectId);
+
+                    var request = new RequestNotification
+                    {
+                        IsAccepted = false,
+                        ReceiverId = user.Id,
+                        SenderId = senderId,
+                        NotificationType = "ProjectRequest",
+                        ProjectName =project,
+                        SentDate = DateTime.UtcNow,
+                        Text = "Hi, I am "+sender.Firstname+" "+sender.Lastname+ ". I want to invite you to my project named: " + project,
+                    };
+                    await _requestNotificationService.Add(request);
+                    mailService.SendEmail(user.Email, sender.Firstname + "" + sender.Lastname + " invited you to their project " + project);
+                    ///signalr
+
+                }
+
+                return Ok(new { Message = "Team members added successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpDelete("TeammemberRemover")]
+        public async Task<IActionResult> RemoveMember([FromBody] RemoveTeamMemberDto dto)
+        {
+           var requests= await _requestNotificationService.GetNotificationsByProjectName(dto.Title);
+            var request = requests.FirstOrDefault(n => n.ReceiverId == dto.RecieverId);
+            if (request == null)
+            {
+                return Ok(new { Code = 404 });
+            }
+                
+            await _requestNotificationService.Delete(request);
+
+            return Ok(new { Code = 200 });
+        }
+
+
+        [Authorize]
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetMembersByProjectId([FromRoute] int id)
+        {
+            var list = await _teamMemberService.GetTaskMemberListById(id);
+
+            var dtoList = new List<ExtendedTeamMemberDto>();
+
+            foreach (var item in list)
+            {
+                var user =await _userService.GetUserById(item.UserId);
+                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname,Lastname = user.Lastname, ImgPath = user.Image ,IsRequest=false});
+
+            }
+            var project=await _projectService.GetProjectById(id);
+
+            var requests = await _requestNotificationService.GetNotificationsByProjectName(project.Title);
+
+
+            foreach (var item in requests)
+            {
+                var user = await _userService.GetUserById(item.ReceiverId);
+                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname, Lastname = user.Lastname, ImgPath = user.Image, IsRequest = true });
+
+            }
+
+
+            
+                return Ok(new {List = dtoList});
+            
+            //return Ok(new {List = dtoList });
         }
 
 

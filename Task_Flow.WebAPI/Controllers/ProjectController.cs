@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
@@ -9,6 +11,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -22,7 +25,8 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITaskService _taskService;
         private readonly ITeamMemberService _teamMemberService;
         private readonly IProjectActivityService _projectActivity;
-        public ProjectController(TaskFlowDbContext dbContext, IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService, ITaskService taskService, IProjectActivityService productActivity)
+        private readonly IHubContext<ConnectionHub> _hub;
+        public ProjectController(TaskFlowDbContext dbContext, IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService, ITaskService taskService, IProjectActivityService productActivity, IHubContext<ConnectionHub> hub)
         {
             _projectService = projectService;
             _userService = userService;
@@ -30,6 +34,7 @@ namespace Task_Flow.WebAPI.Controllers
             _context = dbContext;
             _taskService = taskService;
             _projectActivity = productActivity;
+            _hub = hub;
         }
         [Authorize]
         [HttpGet("ExtendedProjectList")]
@@ -52,6 +57,8 @@ namespace Task_Flow.WebAPI.Controllers
             var list = projectList.Select(p => new ExtendedProjectListDto
             {
                 Id = p.Id,
+                EndDate = p.EndDate,
+                StartDate = p.StartDate,
                 Title = p.Title,
                 TotalTask = p.TaskForUsers.Count,
                 CompletedTask = p.TaskForUsers.Count(t => t.Status == "done"),
@@ -59,6 +66,7 @@ namespace Task_Flow.WebAPI.Controllers
                             .Select(tm => tm.User.Image)
                             .ToList(),
                 Color = p.Color,
+
             }).ToList();
 
             return Ok(list);
@@ -164,7 +172,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return NotFound();
             }
             var projectTasks = await _taskService.GetByProjectId(projectId);
-             
+
             var items = projectTasks.Select(p =>
             {
                 return new CanbanTaskDto
@@ -177,10 +185,10 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     StartDate = p.StartTime,
-                    Color = p.Color,  
+                    Color = p.Color,
                     ParticipantPath = p.CreatedBy.Image,
                     ParticipantName = $"{p.CreatedBy.Firstname} {p.CreatedBy.Lastname}",
-                    ParticipantEmail=p.CreatedBy.Email,
+                    ParticipantEmail = p.CreatedBy.Email,
                 };
             }).ToList();
             return Ok(items);
@@ -268,15 +276,50 @@ namespace Task_Flow.WebAPI.Controllers
                 CreatedAt = DateTime.UtcNow,
                 StartDate = value.StartDate,
                 EndDate = value.EndDate,
+                Status = value.Status,
                 Description = value.Description,
                 IsCompleted = value.IsCompleted,
                 Title = value.Title,
-                Color=value.Color,
+                Color = value.Color,
             };
             await _projectService.Add(item);
-            var projectId = await _projectService.GetProjectByName(userId, value.Title);
-            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = projectId.Id, Text = "created a new Project named: " + item.Title });
+
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = item.Id, Text = "created a new Project named: " + item.Title });
+            //var count=await _projectService.
+            //await _hub.Clients.All.SendAsync("ProjectCountUpdate");
+            await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            await _hub.Clients.User(userId).SendAsync("UpdateTotalProjects");//s
+            if (value.Status == "On Going")
+                await _hub.Clients.User(userId).SendAsync("UpdateOnGoingProjects");
+            else if (value.Status == "Pending")
+                await _hub.Clients.User(userId).SendAsync("UpdatePendingProjects");
+            else if (value.Status == "Completed")
+                await _hub.Clients.User(userId).SendAsync("UpdateCompletedProjects");
             return Ok(item);
+        }
+
+        [Authorize]
+        [HttpPut("Put/{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] PutProjectDto dto)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var item = await _projectService.GetProjectById(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            item.Title = dto.Title;
+            item.Color = dto.Color;
+            item.Description = dto.Description;
+            item.StartDate = dto.StartDate;
+            item.EndDate = dto.EndDate;
+            await _projectService.Update(item);
+            await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Title to: " + item.Title });
+            await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            return Ok();
+
         }
 
         // PUT api/<ProjectController>/5
@@ -343,6 +386,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Project (" + item.Title + ") Deleted!" });
             await _projectService.Delete(item);
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
             return Ok(item);
         }
 
@@ -517,5 +561,8 @@ namespace Task_Flow.WebAPI.Controllers
 
 
         }
+
+
+
     }
 }

@@ -15,7 +15,8 @@ namespace Task_Flow.Entities.Models
         public bool? IsOnline { get; set; }
         public DateTime? Birthday { get; set; }
         public DateTime? RegisterDate { get; set; }
-        public DateTime? LastLoginDate { get; set; }  
+        public DateTime? LastLoginDate { get; set; }
+   
 
         // Navigation properties
         public virtual List<Project>? Projects { get; set; }
@@ -31,12 +32,14 @@ namespace Task_Flow.Entities.Models
         public virtual List<RecentActivity>? RecentActivities { get; set; }
         public virtual List<RequestNotification> RequestNotificationsSender { get; set; }
         public virtual List<RequestNotification> RequestNotificationsReceiver { get; set; }
+        public virtual ICollection<Chat>? Chats { get; set; }
         public virtual List<UserTask> UserTasks { get; set; }
 
         public virtual NotificationSetting Setting { get; set; }
         public CustomUser()
         {
              RegisterDate = DateTime.UtcNow;    
+            Chats = new List<Chat>();
         }
 
 

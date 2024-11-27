@@ -40,7 +40,7 @@ namespace TaskFlow.Core.DataAccess.EntityFramework
             return await _context.Set<TEntity>().SingleOrDefaultAsync(filter);
         }
 
-        public async Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter = null)
+        public async Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter )
         {
             return filter == null ?
                 await _context.Set<TEntity>().ToListAsync() :

@@ -6,6 +6,7 @@
         public string ProjectName { get; set; }
         public string Text { get; set; }
         public DateTime CreateDate { get; set; }
+        public int ProjectId { get; set; }
 
     }
 }

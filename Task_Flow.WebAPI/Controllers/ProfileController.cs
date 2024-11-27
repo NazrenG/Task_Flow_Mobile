@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json.Linq;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
@@ -158,6 +159,20 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new { Result = false, Message = result.Errors });
         }
 
+        [HttpPost("email-confirmation")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ForgotPasswordDto value)
+        {
+            var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
+            if (isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+
+            var code = _emailService.sendVerifyMail(value.NameOrEmail);
+            _verificationCodes[value.NameOrEmail] = code;
+
+            // Mail göndermek hissesini yaz,code -u ora gonder
+
+            return Ok(new { Result = true, Message = "Verification code sent" });
+        }
+
         [Authorize]
         [HttpGet("logout")]
         public async Task<IActionResult> Logout()
@@ -177,7 +192,7 @@ namespace Task_Flow.WebAPI.Controllers
             user.IsOnline = false;
             await _userService.Update(user);
             await _signInManager.SignOutAsync();
-            await _hubContext.Clients.All.SendAsync("UserDisconnected", user.UserName);
+            await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
 
             return Ok(new { message = "Logout successful" });
         }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task_Flow.Entities.Data;
 
@@ -11,9 +12,11 @@ using Task_Flow.Entities.Data;
 namespace Task_Flow.Entities.Migrations
 {
     [DbContext(typeof(TaskFlowDbContext))]
-    partial class TaskFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241121205619_migg")]
+    partial class migg
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,66 +156,6 @@ namespace Task_Flow.Entities.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("Task_Flow.Entities.Models.Chat", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ReceiverId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SenderId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReceiverId");
-
-                    b.ToTable("Chats");
-                });
-
-            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChatId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasSeen")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsImage")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SenderId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("SentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("Task_Flow.Entities.Models.Comment", b =>
@@ -837,32 +780,6 @@ namespace Task_Flow.Entities.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.Chat", b =>
-                {
-                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "Receiver")
-                        .WithMany("Chats")
-                        .HasForeignKey("ReceiverId");
-
-                    b.Navigation("Receiver");
-                });
-
-            modelBuilder.Entity("Task_Flow.Entities.Models.ChatMessage", b =>
-                {
-                    b.HasOne("Task_Flow.Entities.Models.Chat", "Chat")
-                        .WithMany("Messages")
-                        .HasForeignKey("ChatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Task_Flow.Entities.Models.CustomUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId");
-
-                    b.Navigation("Chat");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("Task_Flow.Entities.Models.Comment", b =>
                 {
                     b.HasOne("Task_Flow.Entities.Models.Work", "TaskForUser")
@@ -1059,15 +976,8 @@ namespace Task_Flow.Entities.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Task_Flow.Entities.Models.Chat", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
             modelBuilder.Entity("Task_Flow.Entities.Models.CustomUser", b =>
                 {
-                    b.Navigation("Chats");
-
                     b.Navigation("Comments");
 
                     b.Navigation("Friends");

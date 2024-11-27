@@ -8,7 +8,8 @@ namespace Task_Flow.Entities.Models
         public DateTime Created { get; set; }
         public string? UserId { get; set; }
         public string? UserFriendId { get; set; }
-
+        public bool IsFriend { get; set; }
+        public bool HasRequestPending { get; set; }
         public virtual CustomUser? User { get; set; }  
         public virtual CustomUser? UserFriend { get; set; }
 

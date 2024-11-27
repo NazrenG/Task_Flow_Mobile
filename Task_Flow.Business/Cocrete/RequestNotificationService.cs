@@ -28,6 +28,22 @@ namespace Task_Flow.Business.Cocrete
     {
         await requestNotificationDal.Delete(RequestNotification);
     }
+        public async Task<List<RequestNotification>> GetAll()
+        {
+            return await requestNotificationDal.GetAll();
+        }
+
+        public async Task<List<RequestNotification>> GetNotificationsByProjectName(string projectName)
+        {
+          return await requestNotificationDal.GetAll(n=>n.ProjectName== projectName);
+        }
+
+        public async Task<List<RequestNotification>>GetNotificationsBySenderId(string senderId)
+        {
+          var list= await requestNotificationDal.GetAll();
+            if (list == null) return new List<RequestNotification>();
+            return  list.Where(u=>u.SenderId==senderId).ToList();
+        }
 
     public async Task<RequestNotification> GetRequestNotificationById(int id)
     {

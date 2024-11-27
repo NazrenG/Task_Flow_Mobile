@@ -16,7 +16,15 @@ namespace Task_Flow.DataAccess.Concrete
 
         public async Task<List<Friend>> GetAllFriends(string userId)
         {
-          return await _db.Friends.Include(u=>u.UserFriend).Where(i=>i.UserId==userId).ToListAsync();    
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("User ID cannot be null or empty.", nameof(userId));
+            }
+
+            return await _db.Friends
+                .Include(u => u.UserFriend)
+                .Where(i => i.UserId == userId)
+                .ToListAsync();
         }
     }
 }

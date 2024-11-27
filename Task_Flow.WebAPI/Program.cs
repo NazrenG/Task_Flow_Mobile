@@ -74,6 +74,10 @@ builder.Services.AddScoped<IRequestNotificationDal, RequestNotificationDal>();
 builder.Services.AddScoped<IRequestNotificationService, RequestNotificationService>();
 builder.Services.AddScoped<IProjectActivityDal, ProjectActivityDal>();
 builder.Services.AddScoped<IProjectActivityService, ProjectActivityService>();
+builder.Services.AddScoped<IChatDal, ChatDal>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IChatMessageDal,ChatMessageDal>();
+builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 
 // Identity configuration (only user management, no roles)
 builder.Services.AddIdentity<CustomUser, IdentityRole>()
