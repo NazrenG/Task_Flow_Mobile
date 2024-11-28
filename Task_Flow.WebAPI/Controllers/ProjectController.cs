@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MailKit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -27,15 +28,20 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITeamMemberService _teamMemberService;
         private readonly IProjectActivityService _projectActivity;
         private readonly IHubContext<ConnectionHub> _hub;
-        public ProjectController(TaskFlowDbContext dbContext, IProjectService projectService, IUserService userService, ITeamMemberService teamMemberService, ITaskService taskService, IProjectActivityService productActivity, IHubContext<ConnectionHub> hub)
+        private readonly IRequestNotificationService _requestNotificationService;
+        private readonly Business.Cocrete.MailService mailService;
+
+        public ProjectController(IProjectService projectService, TaskFlowDbContext context, IUserService userService, ITaskService taskService, ITeamMemberService teamMemberService, IProjectActivityService projectActivity, IHubContext<ConnectionHub> hub, IRequestNotificationService requestNotificationService, Business.Cocrete.MailService mailService)
         {
             _projectService = projectService;
+            _context = context;
             _userService = userService;
-            _teamMemberService = teamMemberService;
-            _context = dbContext;
             _taskService = taskService;
-            _projectActivity = productActivity;
+            _teamMemberService = teamMemberService;
+            _projectActivity = projectActivity;
             _hub = hub;
+            _requestNotificationService = requestNotificationService;
+            this.mailService = mailService;
         }
 
         [HttpGet("ProjectTitle/{projectId}")]
@@ -43,7 +49,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var project=await _projectService.GetProjectById(projectId);
             if(project==null) return NotFound();
-            return Ok(new { Title = project.Title });
+            return Ok(new { Title = project.Title ,Color=project.Color});
         }
 
 
@@ -224,7 +230,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var task = await _taskService.GetTaskById(id);
-
+            
             if (task == null)
                 return NotFound("Task not found.");
 
@@ -236,6 +242,61 @@ namespace Task_Flow.WebAPI.Controllers
 
             task.Status = updateTaskStatusDto.NewStatus;
             await _taskService.Update(task);
+
+
+            try
+            {        //userin task listi ucun kanbandan gelen task  
+                await _hub.Clients.User(task.CreatedById).SendAsync("UserTaskList");
+                await _hub.Clients.User(task.CreatedById).SendAsync("RunningTaskCount");
+                await _hub.Clients.User(task.CreatedById).SendAsync("CompletedTaskCount");
+                await _hub.Clients.User(task.CreatedById).SendAsync("OnHoldTaskCount");
+                await _hub.Clients.User(task.CreatedById).SendAsync("TaskTotalCount");//task siline biler
+
+                //canban ucun signalr 
+                await _hub.Clients.User(userId).SendAsync("CanbanTaskUpdated");
+                await _hub.Clients.User(task.CreatedById).SendAsync("CanbanTaskUpdated");
+                await _hub.Clients.User(task.CreatedById).SendAsync("DashboardCalendarNotificationCount");
+                //dashboard-da current project
+                await _hub.Clients.User(task.CreatedById).SendAsync("DashboardReceiveProject");
+            
+
+                //project ve view detail sehifesindeki task list
+    await _hub.Clients.User(task.CreatedById).SendAsync("ProjectsTaskList");
+    await _hub.Clients.User(task.CreatedById).SendAsync("ProjectDetailTaskList");
+
+                //view profil sehifesindeki task list 
+    await _hub.Clients.User(task.CreatedById).SendAsync("UserProfileTask");
+                //project activity log signalr detail sehifesi
+                await _hub.Clients.User(task.CreatedById).SendAsync("ProjectRecentActivityInDetail");
+                await _hub.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
+                //project activity log signalr project sehifesi
+                await _hub.Clients.User(task.CreatedById).SendAsync("ProjectsRecentActivity");
+                await _hub.Clients.User(userId).SendAsync("ProjectsRecentActivity");
+                // request getsin taski edit olan sexse
+                var request = new RequestNotification
+                {
+                    IsAccepted = false,
+                    ReceiverId = task.CreatedById,
+                    SenderId = userId,
+                    NotificationType = "ProjectRequest",
+                    ProjectName = project.Title,
+                    SentDate = DateTime.UtcNow,
+                    Text = $"Your task edit by {project.CreatedBy?.Firstname} {project.CreatedBy?.Lastname} in the project named {project.Title} "
+                };
+                await _requestNotificationService.Add(request);
+                await _hub.Clients.User(task.CreatedById).SendAsync("RequestList2");
+                await _hub.Clients.User(task.CreatedById).SendAsync("RequestCount");
+                await _hub.Clients.User(task.CreatedById).SendAsync("RequestList");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SignalR error: {ex.Message}");
+
+            }
+            //mail getsin taski edit olan sexse
+            mailService.SendEmail(task.CreatedBy?.Email, $"Your task edit in the project named {project} ");
+
+
             await _projectActivity.Add(new ProjectActivity
             {
                 UserId = userId,
@@ -311,6 +372,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Color = value.Color,
             };
             await _projectService.Add(item);
+
 
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = item.Id, Text = "created a new Project named: " + item.Title });
             //var count=await _projectService.

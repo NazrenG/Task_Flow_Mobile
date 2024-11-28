@@ -9,6 +9,8 @@ using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Microsoft.AspNetCore.SignalR;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -22,13 +24,18 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IProjectService _projectService;
         private readonly MailService mailService;
         private readonly  IRequestNotificationService _requestNotificationService;
+        private readonly IHubContext<ConnectionHub> _hub;
+        private readonly INotificationSettingService _notificationSettingService;
 
-        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService)
+        public TeamMemberController(IUserService userService, ITeamMemberService teamMemberService, IProjectService projectService, MailService mailService, IRequestNotificationService requestNotificationService, IHubContext<ConnectionHub> hub, INotificationSettingService notificationSettingService)
         {
-            _teamMemberService = teamMemberService;
             _userService = userService;
+            _teamMemberService = teamMemberService;
             _projectService = projectService;
+            this.mailService = mailService;
             _requestNotificationService = requestNotificationService;
+            _hub = hub;
+            _notificationSettingService = notificationSettingService;
         }
 
         [HttpGet("AllMember")]
@@ -159,6 +166,18 @@ namespace Task_Flow.WebAPI.Controllers
                         Text = "Hi, I am " + sender.Firstname + " " + sender.Lastname + ". I want to invite you to my project named: " + project,
                     };
                     await _requestNotificationService.Add(request);
+                    //notification list
+                    await _hub.Clients.User(user.Id).SendAsync("RequestList2");
+                    await _hub.Clients.User(user.Id).SendAsync("RequestCount");
+                    await _hub.Clients.User(user.Id).SendAsync("RequestList");
+                    //proyektde istirrak ucun egere icaze varsa mail gedir
+                    var notificationSetting = await _notificationSettingService.GetNotificationSetting(user.Id);
+                    if (notificationSetting.NewTaskWithInProject)
+                    {
+                        mailService.SendEmail(user.Email, $"Hi,{user.Firstname} {user.Lastname}.You have a new task in the project named {project} ");
+
+                    }
+
 
                     //await _teamMemberService.Add(teamMember);
                 }

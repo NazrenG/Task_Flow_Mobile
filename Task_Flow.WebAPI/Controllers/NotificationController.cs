@@ -119,12 +119,23 @@ namespace Task_Flow.WebAPI.Controllers
             }).ToList();
             return Ok(items);
         }
+        [Authorize]
         [HttpDelete("DeletedCalendarMessage/{id}")]
         public async Task<IActionResult> DeletedCalendarMessage(int id)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
             var item = await notificationService.GetNotificationById(id);
             if (item == null) { return BadRequest(new { message = "not found message" }); }
             await notificationService.Delete(item);
+            await _hub.Clients.User(userId).SendAsync("ReminderRequestList");
+            await _hub.Clients.User(userId).SendAsync("CalendarNotificationCount");
+            await _hub.Clients.User(userId).SendAsync("CalendarNotificationList2");
+            //userin loglari
+            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message="delete message succesfuly"});
         }
 
@@ -329,6 +340,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Text = l.Text,
                 SenderName = $"{l.Sender.Firstname} {l.Sender.Lastname}",
                 Image = l.Sender.Image,
+                Typee=l.NotificationType,
                 
 
             }).ToList();
@@ -363,6 +375,12 @@ namespace Task_Flow.WebAPI.Controllers
             };
 
             await requestNotificationService.Add(item);
+            //notification list
+            await _hub.Clients.User(receiverUser.Id).SendAsync("RequestList2");
+            await _hub.Clients.User(receiverUser.Id).SendAsync("RequestCount");
+            await _hub.Clients.User(receiverUser.Id).SendAsync("RequestList");
+
+
             await _hub.Clients.User(sender.Id).SendAsync("InwokeSendFollow",receiverUser.Id);
             if(dto.NotificationType== "FriendRequest")
             {
@@ -371,7 +389,7 @@ namespace Task_Flow.WebAPI.Controllers
             } 
             else
             {
-                mailService.SendEmail(receiverUser.Email, $"You have a new project proposal from {sender.Firstname} {sender.Lastname}.proyektin adi ,descriptionu");
+                mailService.SendEmail(receiverUser.Email, $"You have a new project proposal from {sender.Firstname} {sender.Lastname}");
             }
             return Ok(new
             {
@@ -397,7 +415,10 @@ namespace Task_Flow.WebAPI.Controllers
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }
             await requestNotificationService.Delete(request);
-            await _hub.Clients.User(request.SenderId).SendAsync("UpdateUserActivity");
+            await _hub.Clients.User(userId).SendAsync("RequestList2");
+            await _hub.Clients.User(userId).SendAsync("RequestCount");
+            await _hub.Clients.User(userId).SendAsync("RequestList");
+            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "delete request notification succesfully" });
         }
         [Authorize]
