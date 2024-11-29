@@ -7,7 +7,7 @@
         public string Lastname { get; set; }
         public string ImgPath { get; set; }
         public bool IsRequest {  get; set; }
-
+        public bool IsAccepted { get; set; }
 
     }
 }

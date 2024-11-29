@@ -84,7 +84,7 @@ namespace Task_Flow.WebAPI.Hubs
         public async Task GetMessages(string receiverId, string senderId)
         {
             var friend=await _userManager.FindByIdAsync(receiverId);
-            await Clients.Users(new String[] { receiverId, senderId }).SendAsync("ReceiveMessages",friend.Email);
+            await Clients.Users(new String[] { receiverId, senderId }).SendAsync("ReceiveMessages2", friend.Email);
         }
         public async Task UpdateOwnProjectList()
         {

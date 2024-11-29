@@ -25,5 +25,9 @@ namespace Task_Flow.DataAccess.Concrete
                 await _context.SaveChangesAsync();
         }
 
+        public async Task<List<TeamMember>> GetTeamMembers()
+        {
+            return await _context.TeamMembers.Include(u => u.User).Include(p => p.Project).ToListAsync();
+        }
     }
 }

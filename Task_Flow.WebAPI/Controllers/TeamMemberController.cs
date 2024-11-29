@@ -9,6 +9,9 @@ using Task_Flow.Business.Cocrete;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -21,14 +24,17 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITeamMemberService _teamMemberService;
         private readonly IProjectService _projectService;
         private readonly MailService mailService;
+        private readonly IHubContext<ConnectionHub> _hub;
         private readonly  IRequestNotificationService _requestNotificationService;
 
-        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService)
+        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService, IHubContext<ConnectionHub> hub, MailService mailService)
         {
             _teamMemberService = teamMemberService;
             _userService = userService;
             _projectService = projectService;
             _requestNotificationService = requestNotificationService;
+            _hub = hub;
+            this.mailService = mailService;
         }
 
         [HttpGet("AllMember")]
@@ -260,6 +266,21 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new { Code = 200 });
         }
 
+        [Authorize]
+        [HttpDelete("MemberRemove")]
+        public async Task<IActionResult> RemoveTM([FromBody]RemoveMemberDto dto)
+        {
+            var user=await _userService.GetOneUSerByUsername(dto.Username);
+            var currentUserId=  HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            await _teamMemberService.DeleteTeamMemberAsync(dto.ProjectId,user.Id);
+            var project = await _projectService.GetProjectById(dto.ProjectId);
+            mailService.SendEmail(user.Email, "You were removed from project " + project.Title + " at " + DateTime.UtcNow.ToShortDateString() + " by PM");
+            await _hub.Clients.User(currentUserId).SendAsync("ReceiveProjectUpdate");
+            return Ok();
+
+        }
+
 
         [Authorize]
         [HttpGet("get/{id}")]
@@ -272,7 +293,7 @@ namespace Task_Flow.WebAPI.Controllers
             foreach (var item in list)
             {
                 var user =await _userService.GetUserById(item.UserId);
-                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname,Lastname = user.Lastname, ImgPath = user.Image ,IsRequest=false});
+                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname,Lastname = user.Lastname, ImgPath = user.Image ,IsRequest=false, IsAccepted =true});
 
             }
             var project=await _projectService.GetProjectById(id);
@@ -283,7 +304,7 @@ namespace Task_Flow.WebAPI.Controllers
             foreach (var item in requests)
             {
                 var user = await _userService.GetUserById(item.ReceiverId);
-                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname, Lastname = user.Lastname, ImgPath = user.Image, IsRequest = true });
+                dtoList.Add(new ExtendedTeamMemberDto { Username = user.UserName, Firstname = user.Firstname, Lastname = user.Lastname, ImgPath = user.Image, IsRequest = true, IsAccepted=item.IsAccepted });
 
             }
 

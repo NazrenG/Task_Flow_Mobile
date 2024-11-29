@@ -329,6 +329,10 @@ namespace Task_Flow.WebAPI.Controllers
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Title to: " + item.Title });
             await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
             await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+           
+    
+        await _hub.Clients.All.SendAsync("ReceiveProjectUpdateDashboard");
+    
             return Ok();
 
         }
