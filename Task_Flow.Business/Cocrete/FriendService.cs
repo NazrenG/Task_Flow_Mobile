@@ -1,4 +1,5 @@
-﻿using Task_Flow.Business.Abstract;
+﻿using Microsoft.EntityFrameworkCore;
+using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
@@ -40,5 +41,16 @@ namespace Task_Flow.Business.Cocrete
         var friends=await dal.GetAllFriends(userId);
             return friends.FirstOrDefault(f => f.UserFriendId == friendId);
         }
+
+        public async Task<bool> CheckFriendship(string userId, string friendId)
+
+        {
+
+            var list = await dal.GetAll();
+            var count =   list.Where(f => (f.UserId == userId && f.UserFriendId == friendId && f.IsFriend == true) || (f.UserId == friendId && f.UserFriendId == userId && f.IsFriend == true)).Count();
+            return count == 2;
+        }
+  
+
     }
 }

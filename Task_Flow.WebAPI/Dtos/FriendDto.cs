@@ -11,5 +11,6 @@
         public bool HasRequestPending { get; set; }
         public string? FriendPhoto { get; set; }
         public bool? IsOnline { get; set; }
+        public bool? CheckFriend { get; set; }
     }
 }

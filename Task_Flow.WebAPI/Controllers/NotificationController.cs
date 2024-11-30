@@ -266,7 +266,7 @@ namespace Task_Flow.WebAPI.Controllers
             item.InnovationNewProject = dto.InnovationNewProject;
             item.TaskDueDate = dto.TaskDueDate;
             await notificationSettingService.Update(item);
-            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1"); 
 
 
             return Ok(new { success = true, message = "Update successful" });
@@ -451,6 +451,7 @@ namespace Task_Flow.WebAPI.Controllers
                 {
                     UserId = request.SenderId,
                     UserFriendId= userId,
+                    IsFriend=true,
                 });
 
             }

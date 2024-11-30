@@ -201,7 +201,7 @@ namespace Task_Flow.WebAPI.Controllers
 
 
         [Authorize]
-        [HttpPost("EditedProfile")]
+        [HttpPut("EditedProfile")]
         public async Task<IActionResult> EditProfile([FromBody] UserDto dto)
         {
             if (!ModelState.IsValid)
@@ -240,7 +240,7 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("EditedProfileImage")]
+        [HttpPut("EditedProfileImage")]
         public async Task<IActionResult> EditProfileImage([FromForm] IFormFile file)
         {
             if (!ModelState.IsValid)

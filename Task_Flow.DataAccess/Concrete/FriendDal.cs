@@ -23,6 +23,7 @@ namespace Task_Flow.DataAccess.Concrete
 
             return await _db.Friends
                 .Include(u => u.UserFriend)
+                .Include(f=>f.User)
                 .Where(i => i.UserId == userId)
                 .ToListAsync();
         }
