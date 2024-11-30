@@ -1,10 +1,11 @@
-﻿using Task_Flow.Business.Abstract;
+﻿using Microsoft.EntityFrameworkCore;
+using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 
 namespace Task_Flow.Business.Cocrete
 {
-    public class FriendService:IFriendService
+    public class FriendService : IFriendService
     {
         private readonly IFriendDal dal;
 
@@ -23,7 +24,7 @@ namespace Task_Flow.Business.Cocrete
             await dal.Delete(friend);
         }
 
-     
+
 
         public async Task<List<Friend>> GetFriends(string userId)
         {
@@ -36,9 +37,29 @@ namespace Task_Flow.Business.Cocrete
         }
 
         public async Task<Friend> GetFriendByUserAndFriendId(string userId, string friendId)
-        { 
-        var friends=await dal.GetAllFriends(userId);
+        {
+            var friends = await dal.GetAllFriends(userId);
             return friends.FirstOrDefault(f => f.UserFriendId == friendId);
+        }
+
+        public async Task<bool> CheckFriendship(string userId, string friendId)
+
+        {
+
+            var list = await dal.GetAll();
+            var count = list.Where(f => (f.UserId == userId && f.UserFriendId == friendId && f.IsFriend == true) || (f.UserId == friendId && f.UserFriendId == userId && f.IsFriend == true)).Count();
+            return count == 2;
+        }
+
+        public async Task<bool> MutualFriends(string userId, string friendId)
+        {
+            var list = await dal.GetAll();
+            var count = list.Where(f =>
+           (f.UserId == userId && f.UserFriendId == friendId ) ||
+           (f.UserId == friendId && f.UserFriendId == userId))
+       .Count();
+
+            return count == 2;
         }
     }
 }

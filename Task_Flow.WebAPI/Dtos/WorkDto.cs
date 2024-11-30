@@ -13,6 +13,7 @@
 
         public string? Priority { get; set; }// Urgent, Primary, Simple
         public int ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
         public string? Color { get; set; }   
         public string? ProjectName { get; set; }   
         public string? CreatedById { get; set; }//userId

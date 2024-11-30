@@ -95,9 +95,12 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var list = await friendService.GetFriends(userId);
-            var items = list.Select(p =>
+            var result = new List<FriendDto>();
+
+            foreach (var p in list)
             {
-                return new FriendDto
+                var check = await friendService.CheckFriendship(p.UserId, p.UserFriendId);
+                result.Add(new FriendDto
                 {
                     FriendName = p.UserFriend.Firstname + " " + p.UserFriend.Lastname,
                     FriendEmail = p.UserFriend.Email,
@@ -105,9 +108,10 @@ namespace Task_Flow.WebAPI.Controllers
                     FriendPhone = p.UserFriend.PhoneNumber,
                     FriendPhoto = p.UserFriend.Image,
                     IsOnline = p.UserFriend.IsOnline,
-                };
-            });
-            return Ok(items);
+                    CheckFriend = check,
+                });
+            }
+            return Ok(result);
         }
 
 

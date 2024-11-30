@@ -9,5 +9,7 @@ namespace Task_Flow.Business.Abstract
         Task Add(Friend friend);
         Task Update(Friend friend);
         Task Delete(Friend friend);
+        Task<bool>CheckFriendship(string userId, string friendId);
+        Task<bool> MutualFriends(string userId, string friendId);
     }
 }

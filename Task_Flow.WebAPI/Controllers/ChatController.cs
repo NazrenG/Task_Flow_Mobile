@@ -43,10 +43,18 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var myfriends = await friendService.GetFriends(userId);
+            //var sortFriend=myfriends.Select(f=>f.)
+            var sortFriend = new List<Friend>();
+            foreach (var friend in myfriends) {
+                var result = await friendService.MutualFriends(friend.UserId, friend.UserFriendId);
+            if (result)
+            sortFriend.Add(friend); 
+            }
+
             var sorted = new List<FriendForMessageDto>();
 
 
-            foreach (var item in myfriends)
+            foreach (var item in sortFriend)
             {
                 var chat = await chatService.GetByRecieverAndSenderId(userId, item.UserFriendId);
                 ChatMessage latestmessage = null;

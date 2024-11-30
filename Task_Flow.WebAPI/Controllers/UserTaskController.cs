@@ -53,6 +53,7 @@ namespace Task_Flow.WebAPI.Controllers
                     Status = p.Status,
                     Title = p.Title,
                     StartDate = p.StartTime,
+                    Color = p.Color,
                 };
             }).ToList();
             return Ok(items);
@@ -81,6 +82,24 @@ namespace Task_Flow.WebAPI.Controllers
             };
             return Ok(work);
         }
+        [Authorize]
+        [HttpPut("EditedTaskForCalendar/{id}")]
+        public async Task<IActionResult> PutEditTaskForCalendar(int id, [FromBody] EditForCalendarDto value)
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var item = await userTaskService.GetById(id);
+ 
+            item.Deadline = value.Deadline; 
+            item.StartTime = value.StartDate; 
+
+            await userTaskService.Update(item); 
+            await _context.Clients.User(userId).SendAsync("UserTaskList"); 
+            return Ok(new { message = "update succesfuly" });
+        }
 
 
         [Authorize]
@@ -106,6 +125,7 @@ namespace Task_Flow.WebAPI.Controllers
             await userTaskService.Update(item);
             //TaskTotalCount OnHoldTaskCount RunningTaskCount CompletedTaskCount
          
+            await _context.Clients.User(userId).SendAsync("UserTaskList");
             await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
             await _context.Clients.User(userId).SendAsync("RunningTaskCount");
             await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
@@ -127,7 +147,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             return Ok(item.Count());
         }
-
+        
 
         [Authorize]
         [HttpPost("NewTask")]
