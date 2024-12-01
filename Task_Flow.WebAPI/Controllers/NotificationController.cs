@@ -414,10 +414,19 @@ namespace Task_Flow.WebAPI.Controllers
 
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
             if (request == null) { return BadRequest(new { message = "request not found" }); }
+         
+
             await requestNotificationService.Delete(request);
             await _hub.Clients.User(userId).SendAsync("RequestList2");
             await _hub.Clients.User(userId).SendAsync("RequestCount");
-            await _hub.Clients.User(userId).SendAsync("RequestList");
+            await _hub.Clients.User(userId).SendAsync("RequestList");  
+            var item = new RecentActivity
+            {
+                UserId = userId,
+                Text = "Delete request",
+                Type = "Notification",
+            };
+            await recentActivityService.Add(item);
             await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "delete request notification succesfully" });
         }
@@ -455,8 +464,20 @@ namespace Task_Flow.WebAPI.Controllers
                 });
 
             }
+
             
             await _hub.Clients.User(request.SenderId).SendAsync("UpdateUserActivity");
+            await _hub.Clients.User(userId).SendAsync("RequestList2");
+            await _hub.Clients.User(userId).SendAsync("RequestCount");
+            await _hub.Clients.User(userId).SendAsync("RequestList");
+            var item = new RecentActivity
+            {
+                UserId = userId,
+                Text = "Accept request",
+                Type = "Notification",
+            };
+            await recentActivityService.Add(item);
+            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
             return Ok(new { message = "accept request succesfuly" });
         }

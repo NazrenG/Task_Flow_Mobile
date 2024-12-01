@@ -20,12 +20,15 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService userService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IHubContext<ConnectionHub> _context;
-        public UserTaskController(IHubContext<ConnectionHub> hub, IUserTaskService userTaskService, IUserService userService, UserManager<CustomUser> userManager)
+        private readonly IProjectService _projectService;
+
+        public UserTaskController(IUserTaskService userTaskService, IUserService userService, UserManager<CustomUser> userManager, IHubContext<ConnectionHub> context, IProjectService projectService)
         {
             this.userTaskService = userTaskService;
             this.userService = userService;
             _userManager = userManager;
-            _context = hub;
+            _context = context;
+            _projectService = projectService;
         }
 
 
@@ -98,6 +101,9 @@ namespace Task_Flow.WebAPI.Controllers
 
             await userTaskService.Update(item); 
             await _context.Clients.User(userId).SendAsync("UserTaskList"); 
+
+
+
             return Ok(new { message = "update succesfuly" });
         }
 
@@ -111,8 +117,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return BadRequest(new { message = "User not authenticated." });
             }
-            var item = await userTaskService.GetById(id);
-
+            var item = await userTaskService.GetById(id); 
 
             item.Description = value.Description;
             item.Deadline = value.Deadline;
@@ -129,6 +134,25 @@ namespace Task_Flow.WebAPI.Controllers
             await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
             await _context.Clients.User(userId).SendAsync("RunningTaskCount");
             await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
+
+            //canban ucun signalr
+            await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated"); 
+
+            //project ve view detail sehifesindeki task list
+            await _context.Clients.User(item.CreatedById).SendAsync("ProjectsTaskList");
+            await _context.Clients.User(item.CreatedById).SendAsync("ProjectDetailTaskList");
+
+            //view profil sehifesindeki task list 
+            await _context.Clients.User(item.CreatedById).SendAsync("UserProfileTask");
+
+            //dashboard-da current project
+            await _context.Clients.User(item.CreatedById).SendAsync("DashboardReceiveProject");
+            //project activity log signalr detail sehifesi
+            await _context.Clients.User(item.CreatedById).SendAsync("ProjectRecentActivityInDetail");
+            await _context.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
+            //project activity log signalr project sehifesi
+            await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
+            await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
             return Ok(new { message = "update succesfuly" });
         }
 
