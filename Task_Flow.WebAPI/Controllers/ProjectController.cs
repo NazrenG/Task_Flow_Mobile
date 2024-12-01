@@ -408,6 +408,10 @@ namespace Task_Flow.WebAPI.Controllers
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Title to: " + item.Title });
             await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
             await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+           
+    
+        await _hub.Clients.All.SendAsync("ReceiveProjectUpdateDashboard");
+    
             return Ok();
 
         }
@@ -477,6 +481,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Project (" + item.Title + ") Deleted!" });
             await _projectService.Delete(item);
             await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            await _hub.Clients.User(userId).SendAsync("RequestList");
             return Ok(item);
         }
 

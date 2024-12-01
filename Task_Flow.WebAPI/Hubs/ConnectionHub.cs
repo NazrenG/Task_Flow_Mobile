@@ -76,6 +76,7 @@ namespace Task_Flow.WebAPI.Hubs
                     await _userService.Update(currentUser);
 
                     //await Clients.All.SendAsync("UpdateUserActivity");
+                    await Clients.Others.SendAsync("UpdateUserActivity");
                 }
 
             }
@@ -83,8 +84,17 @@ namespace Task_Flow.WebAPI.Hubs
 
         public async Task GetMessages(string receiverId, string senderId)
         {
-            var friend=await _userManager.FindByIdAsync(receiverId);
-            await Clients.Users(new String[] { receiverId, senderId }).SendAsync("ReceiveMessages",friend.Email);
+            //var userName = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+            //CustomUser currentUser = null;
+            //if (userName != null)
+            //{
+            //   currentUser = await _userService.GetOneUSerByUsername(userName!);
+            //}
+            //else { return; }
+
+                var friend=await _userManager.FindByIdAsync(senderId);
+            //var mail = currentUser.Id == senderId ? "" : friend.Email;
+            await Clients.User(receiverId).SendAsync("ReceiveMessages2", friend.Email);                                                        
         }
         public async Task UpdateOwnProjectList()
         {
@@ -104,6 +114,7 @@ namespace Task_Flow.WebAPI.Hubs
                 user.IsOnline = false;
                 await _userService.Update(user);
                 //await Clients.All.SendAsync("UpdateProjectList");
+                await Clients.Others.SendAsync("UpdateUserActivity");
 
             }
             await base.OnDisconnectedAsync(exception);

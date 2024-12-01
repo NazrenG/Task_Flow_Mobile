@@ -16,5 +16,6 @@ namespace Task_Flow.Business.Abstract
         Task UpdateAsync(Chat chat);
         Task<Chat> GetChatByUserId(string userId);
         Task<Chat> GetByRecieverAndSenderId(string recieverId, string senderId);
+        Task<List<Chat>> GetAllChatByUserId(string userId);
     }
 }

@@ -95,7 +95,6 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var list = await friendService.GetFriends(userId);
-     
             var result = new List<FriendDto>();
 
             foreach (var p in list)
@@ -112,7 +111,6 @@ namespace Task_Flow.WebAPI.Controllers
                     CheckFriend = check,
                 });
             }
-           
             return Ok(result);
         }
 

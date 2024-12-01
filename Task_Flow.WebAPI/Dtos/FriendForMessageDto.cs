@@ -7,5 +7,6 @@
         public string? FriendEmail { get; set; }
         public string? FriendImg { get; set; }
         public string? FriendFullname { get; set; }
+        public bool? IsOnline { get; set; }
     }
 }

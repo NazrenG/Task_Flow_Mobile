@@ -41,6 +41,12 @@ namespace Task_Flow.Business.Cocrete
             await dal.Add(teamMember);
         }
 
+        public async Task DeleteTeamMemberAsync(int projectId,string teamMemberId)
+        {
+            var member =await dal.GetById(p=>p.UserId == teamMemberId&&p.ProjectId==projectId);
+            await dal.Delete(member);
+        }
+
         public async System.Threading.Tasks.Task Update(TeamMember teamMember)
         {
             await dal.Update(teamMember);

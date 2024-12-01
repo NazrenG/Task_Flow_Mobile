@@ -42,6 +42,10 @@ namespace Task_Flow.Business.Cocrete
             await dal.Update(chat);
 
         }
+        public async Task<List<Chat>> GetAllChatByUserId(string userId)
+        {
+            return await dal.GetAll(c => c.SenderId == userId || c.ReceiverId == userId);
+        }
         public async Task<Chat>GetChatByUserId(string userId)
         {
             return await dal.GetById(c=>c.SenderId==userId||c.ReceiverId==userId);
@@ -51,8 +55,10 @@ namespace Task_Flow.Business.Cocrete
             return await dal.GetById(c =>  c.ReceiverId == userId);
         }
         public async Task<Chat>GetByRecieverAndSenderId(string recieverId,string senderId)
-        {
-            return await dal.GetById(c=>c.SenderId==senderId|| c.SenderId == recieverId && c.ReceiverId==recieverId||c.ReceiverId==senderId);
+        {//await dal.GetById();
+           var list =await dal.GetAll();
+          var chat=  list.FirstOrDefault(c => c.SenderId == senderId && c.ReceiverId == recieverId || c.SenderId == recieverId && c.ReceiverId == senderId);
+            return chat;
         }
 
     }

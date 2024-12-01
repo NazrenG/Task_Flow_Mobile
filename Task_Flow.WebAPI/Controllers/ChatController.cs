@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Security.Claims;
 using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
@@ -42,10 +43,18 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             var myfriends = await friendService.GetFriends(userId);
+            //var sortFriend=myfriends.Select(f=>f.)
+            var sortFriend = new List<Friend>();
+            foreach (var friend in myfriends) {
+                var result = await friendService.MutualFriends(friend.UserId, friend.UserFriendId);
+            if (result)
+            sortFriend.Add(friend); 
+            }
+
             var sorted = new List<FriendForMessageDto>();
 
 
-            foreach (var item in myfriends)
+            foreach (var item in sortFriend)
             {
                 var chat = await chatService.GetByRecieverAndSenderId(userId, item.UserFriendId);
                 ChatMessage latestmessage = null;
@@ -53,7 +62,7 @@ namespace Task_Flow.WebAPI.Controllers
                 if (chat != null)
                 {
                     latestmessage = await chatMessageService.GetLatestMessageByChatIdAsync(chat.Id);
-                    isReciever = latestmessage.SenderId !=userId;
+                    isReciever =latestmessage!=null? latestmessage.SenderId !=userId:false;
                 }
                 var user = await userService.GetUserById(item.UserFriendId);
                 sorted.Add(new FriendForMessageDto
@@ -63,7 +72,7 @@ namespace Task_Flow.WebAPI.Controllers
                     FriendImg = user.Image,
                     isReciever = isReciever,
                     RecentMessage = (latestmessage==null?"":latestmessage.Content),
-
+                    IsOnline=user.IsOnline
                 });
 
             }
@@ -75,6 +84,51 @@ namespace Task_Flow.WebAPI.Controllers
 
 
         }
+
+        [Authorize]
+        [HttpGet("UserMessages")]
+        public async Task<IActionResult> GetUserMessages()
+        {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User not authenticated." });
+            }
+            var chats =await chatService.GetAllChatByUserId(userId);
+            if (chats != null)
+            {
+                var list = new List<AllMessagesDto>();
+                foreach (var item in chats)
+                {
+                    ChatMessage lastmessage = null;
+
+                    lastmessage = await chatMessageService.GetLatestMessageByChatIdAsync(item.Id);
+                   var isReciever = lastmessage != null ? lastmessage.SenderId != userId : false;
+                    if (isReciever)
+                    {
+                        var friend = await userService.GetUserById(lastmessage.SenderId);
+                      
+                        var data = new AllMessagesDto
+                        {
+                            FriendName=friend.Firstname,
+                            FriendLastname=friend.Lastname,
+                            FriendImg=friend.Image,
+                            Message=lastmessage.Content,
+                            SentDate=lastmessage.SentDate.ToShortDateString(),
+
+                        };
+                        list.Add(data);
+                    }
+
+                   
+                }
+                return Ok(new {Result=true,List=list});
+
+            }
+            return Ok(new {Resut=false});
+
+        }
+
 
     }
 }

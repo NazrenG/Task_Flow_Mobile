@@ -463,6 +463,7 @@ namespace Task_Flow.WebAPI.Controllers
                     IsFriend=true,
                 });
 
+            await _hub.Clients.User(request.SenderId).SendAsync("UpdateMessageFriendList");
             }
 
             
