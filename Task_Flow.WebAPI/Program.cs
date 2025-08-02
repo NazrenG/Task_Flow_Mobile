@@ -13,6 +13,7 @@ using Task_Flow.WebAPI.Hubs;
 using Task_Flow.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddConsole();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -31,7 +32,10 @@ builder.Services.AddControllersWithViews()
         opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
-builder.Services.AddSignalR();
+var connectionString = builder.Configuration["AzureSignalR:ConnectionString"];
+builder.Services.AddSignalR().AddAzureSignalR(connectionString);
+
+
 // Database connection
 builder.Services.AddDbContext<TaskFlowDbContext>(opt =>
 {

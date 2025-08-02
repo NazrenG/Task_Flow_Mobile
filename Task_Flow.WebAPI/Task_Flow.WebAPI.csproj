@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>af3ce121-e8f1-4652-a7fe-07fb9a3dad95</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,17 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="SMTP.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="SMTP.json" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.30.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
