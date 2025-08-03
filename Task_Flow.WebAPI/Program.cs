@@ -32,7 +32,7 @@ builder.Services.AddControllersWithViews()
         opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
-var connectionString = builder.Configuration["AzureSignalR:ConnectionString"];
+var connectionString = builder.Configuration["AzureSignalR:AzureSignalR__ConnectionString"];
 builder.Services.AddSignalR().AddAzureSignalR(connectionString);
 
 
