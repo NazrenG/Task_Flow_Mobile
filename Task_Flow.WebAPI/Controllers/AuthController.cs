@@ -84,7 +84,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 user.IsOnline = true;
                 await _userService.Update(user); 
-                await _context.Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+                //await _context.Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
 
                 var userRoles = await _userManager.GetRolesAsync(user);
 

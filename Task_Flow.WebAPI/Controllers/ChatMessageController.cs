@@ -54,7 +54,7 @@ namespace Task_Flow.WebAPI.Controllers
             var message = new ChatMessage { Content = dto.Text, SenderId = userId, SentDate = DateTime.UtcNow, ChatId = chat.Id ,IsImage=dto.IsImage};
 
             await _chatMessageService.AddAsync(message);
-            await _hub.Clients.User(userId).SendAsync("ReceiveMessages2",friend.Email);
+            //await _hub.Clients.User(userId).SendAsync("ReceiveMessages2",friend.Email);
 
             return Ok(new {SenderId=userId,FriendId=friend.Id});
         }
