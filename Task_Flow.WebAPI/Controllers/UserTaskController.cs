@@ -100,7 +100,7 @@ namespace Task_Flow.WebAPI.Controllers
             item.StartTime = value.StartDate; 
 
             await userTaskService.Update(item); 
-            await _context.Clients.User(userId).SendAsync("UserTaskList"); 
+        //    await _context.Clients.User(userId).SendAsync("UserTaskList"); 
 
 
 
@@ -130,29 +130,29 @@ namespace Task_Flow.WebAPI.Controllers
             await userTaskService.Update(item);
             //TaskTotalCount OnHoldTaskCount RunningTaskCount CompletedTaskCount
          
-            await _context.Clients.User(userId).SendAsync("UserTaskList");
-            await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
-            await _context.Clients.User(userId).SendAsync("RunningTaskCount");
-            await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
+            //await _context.Clients.User(userId).SendAsync("UserTaskList");
+            //await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
+            //await _context.Clients.User(userId).SendAsync("RunningTaskCount");
+            //await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
 
-            //canban ucun signalr
-            await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated"); 
+            ////canban ucun signalr
+            //await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated"); 
 
-            //project ve view detail sehifesindeki task list
-            await _context.Clients.User(item.CreatedById).SendAsync("ProjectsTaskList");
-            await _context.Clients.User(item.CreatedById).SendAsync("ProjectDetailTaskList");
+            ////project ve view detail sehifesindeki task list
+            //await _context.Clients.User(item.CreatedById).SendAsync("ProjectsTaskList");
+            //await _context.Clients.User(item.CreatedById).SendAsync("ProjectDetailTaskList");
 
-            //view profil sehifesindeki task list 
-            await _context.Clients.User(item.CreatedById).SendAsync("UserProfileTask");
+            ////view profil sehifesindeki task list 
+            //await _context.Clients.User(item.CreatedById).SendAsync("UserProfileTask");
 
-            //dashboard-da current project
-            await _context.Clients.User(item.CreatedById).SendAsync("DashboardReceiveProject");
-            //project activity log signalr detail sehifesi
-            await _context.Clients.User(item.CreatedById).SendAsync("ProjectRecentActivityInDetail");
-            await _context.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
-            //project activity log signalr project sehifesi
-            await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
-            await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
+            ////dashboard-da current project
+            //await _context.Clients.User(item.CreatedById).SendAsync("DashboardReceiveProject");
+            ////project activity log signalr detail sehifesi
+            //await _context.Clients.User(item.CreatedById).SendAsync("ProjectRecentActivityInDetail");
+            //await _context.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
+            ////project activity log signalr project sehifesi
+            //await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
+            //await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
             return Ok(new { message = "update succesfuly" });
         }
 
@@ -201,10 +201,10 @@ namespace Task_Flow.WebAPI.Controllers
             };
             await userTaskService.Add(item);
             //TaskTotalCount OnHoldTaskCount RunningTaskCount CompletedTaskCount
-            await _context.Clients.User(userId).SendAsync("TaskTotalCount");
+            //await _context.Clients.User(userId).SendAsync("TaskTotalCount");
 
-            await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
-            await _context.Clients.User(userId).SendAsync("UserTaskList");
+            //await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
+            //await _context.Clients.User(userId).SendAsync("UserTaskList");
 
 
             return Ok(item);
@@ -226,10 +226,10 @@ namespace Task_Flow.WebAPI.Controllers
             await userTaskService.Delete(item);
             //TaskTotalCount OnHoldTaskCount RunningTaskCount CompletedTaskCount
          
-            if (item.Status=="to do") await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
-           else if (item.Status=="in progress") await _context.Clients.User(userId).SendAsync("RunningTaskCount");
-          else  if (item.Status=="done") await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
-            await _context.Clients.User(userId).SendAsync("TaskTotalCount");
+          //  if (item.Status=="to do") await _context.Clients.User(userId).SendAsync("OnHoldTaskCount");
+          // else if (item.Status=="in progress") await _context.Clients.User(userId).SendAsync("RunningTaskCount");
+          //else  if (item.Status=="done") await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
+          //  await _context.Clients.User(userId).SendAsync("TaskTotalCount");
             return Ok(new { message = "delete succesful" });
         }
         [Authorize]
