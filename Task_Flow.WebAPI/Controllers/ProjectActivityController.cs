@@ -108,7 +108,7 @@ namespace Task_Flow.WebAPI.Controllers
             var data = await projectService.GetProjectById(dto.ProjectId);
 
             await projectActivityService.Add(project);
-            //await hubContext.Clients.User(data.CreatedById).SendAsync("RecieveRecentActivityUpdate");
+           // await hubContext.Clients.User(data.CreatedById).SendAsync("RecieveRecentActivityUpdate");
             return Ok();
 
 

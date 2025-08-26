@@ -293,7 +293,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _teamMemberService.DeleteTeamMemberAsync(dto.ProjectId,user.Id);
             var project = await _projectService.GetProjectById(dto.ProjectId);
             mailService.SendEmail(user.Email, "You were removed from project " + project.Title + " at " + DateTime.UtcNow.ToShortDateString() + " by PM");
-            //await _hub.Clients.User(currentUserId).SendAsync("ReceiveProjectUpdate");
+         //   await _hub.Clients.User(currentUserId).SendAsync("ReceiveProjectUpdate");
             return Ok();
 
         }

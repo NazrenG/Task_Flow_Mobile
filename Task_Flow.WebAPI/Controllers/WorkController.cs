@@ -330,35 +330,35 @@ namespace Task_Flow.WebAPI.Controllers
                 ProjectId = value.ProjectId,
             };
             await taskService.Add(item);
-            try
-            {        //userin task listi ucun kanbandan gelen task  
-                //await _context.Clients.User(member.Id).SendAsync("UserTaskList");
-                //await _context.Clients.User(value.CreatedById).SendAsync("TaskTotalCount");
+            //try
+            //{        //userin task listi ucun kanbandan gelen task  
+            //    await _context.Clients.User(member.Id).SendAsync("UserTaskList");
+            //    await _context.Clients.User(value.CreatedById).SendAsync("TaskTotalCount");
 
-                //await _context.Clients.User(value.CreatedById).SendAsync("OnHoldTaskCount");
-                ////canban ucun signalr 
-                //await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated");
-                //await _context.Clients.User(item.CreatedById).SendAsync("CanbanTaskUpdated");
-                //await _context.Clients.User(member.Id).SendAsync("DashboardCalendarNotificationCount");
+            //    await _context.Clients.User(value.CreatedById).SendAsync("OnHoldTaskCount");
+            //    //canban ucun signalr 
+            //    await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("CanbanTaskUpdated");
+            //    await _context.Clients.User(member.Id).SendAsync("DashboardCalendarNotificationCount");
 
-                ////project ve view detail sehifesindeki task list
-                //await _context.Clients.User(value.CreatedById).SendAsync("ProjectsTaskList");
-                //await _context.Clients.User(value.CreatedById).SendAsync("ProjectDetailTaskList");
+            //    //project ve view detail sehifesindeki task list
+            //    await _context.Clients.User(value.CreatedById).SendAsync("ProjectsTaskList");
+            //    await _context.Clients.User(value.CreatedById).SendAsync("ProjectDetailTaskList");
 
-                ////view profil sehifesindeki task list 
-                //await _context.Clients.User(value.CreatedById).SendAsync("UserProfileTask");
+            //    //view profil sehifesindeki task list 
+            //    await _context.Clients.User(value.CreatedById).SendAsync("UserProfileTask");
 
-                ////dashboard-da current project
-                //await _context.Clients.User(member.Id).SendAsync("DashboardReceiveProject");
+            //    //dashboard-da current project
+            //    await _context.Clients.User(member.Id).SendAsync("DashboardReceiveProject");
 
 
 
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"SignalR error: {ex.Message}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"SignalR error: {ex.Message}");
 
-            }
+            //}
 
             await _requestNotificationService.Add(new RequestNotification
             {
@@ -422,41 +422,41 @@ namespace Task_Flow.WebAPI.Controllers
             await taskService.Delete(item);
 
 
-            try
-            {        //userin task listi ucun kanbandan gelen task  
-                //await _context.Clients.User(item.CreatedById).SendAsync("UserTaskList");
-                //await _context.Clients.User(item.CreatedById).SendAsync("TaskTotalCount");
-                //await _context.Clients.User(item.CreatedById).SendAsync("RunningTaskCount");
-                //await _context.Clients.User(item.CreatedById).SendAsync("CompletedTaskCount");
-                //await _context.Clients.User(item.CreatedById).SendAsync("OnHoldTaskCount");
-                ////canban ucun signalr
-                //await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated");
-                //await _context.Clients.User(item.CreatedById).SendAsync("CanbanTaskUpdated");
+            //try
+            //{        //userin task listi ucun kanbandan gelen task  
+            //    await _context.Clients.User(item.CreatedById).SendAsync("UserTaskList");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("TaskTotalCount");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("RunningTaskCount");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("CompletedTaskCount");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("OnHoldTaskCount");
+            //    //canban ucun signalr
+            //    await _context.Clients.User(userId).SendAsync("CanbanTaskUpdated");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("CanbanTaskUpdated");
 
-                ////project ve view detail sehifesindeki task list
-                //await _context.Clients.User(item.CreatedById).SendAsync("ProjectsTaskList");
-                //await _context.Clients.User(item.CreatedById).SendAsync("ProjectDetailTaskList");
+            //    //project ve view detail sehifesindeki task list
+            //    await _context.Clients.User(item.CreatedById).SendAsync("ProjectsTaskList");
+            //    await _context.Clients.User(item.CreatedById).SendAsync("ProjectDetailTaskList");
 
-                ////view profil sehifesindeki task list 
-                //await _context.Clients.User(item.CreatedById).SendAsync("UserProfileTask");
+            //    //view profil sehifesindeki task list 
+            //    await _context.Clients.User(item.CreatedById).SendAsync("UserProfileTask");
 
-                ////dashboard-da current project
-                //await _context.Clients.User(item.CreatedById).SendAsync("DashboardReceiveProject");
-                ////project activity log signalr detail sehifesi
-                //await _context.Clients.User(item.CreatedById).SendAsync("ProjectRecentActivityInDetail");
-                //await _context.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
-                ////project activity log signalr project sehifesi
-                //await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
-                //await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
+            //    //dashboard-da current project
+            //    await _context.Clients.User(item.CreatedById).SendAsync("DashboardReceiveProject");
+            //    //project activity log signalr detail sehifesi
+            //    await _context.Clients.User(item.CreatedById).SendAsync("ProjectRecentActivityInDetail");
+            //    await _context.Clients.User(userId).SendAsync("ProjectRecentActivityInDetail");
+            //    //project activity log signalr project sehifesi
+            //    await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
+            //    await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
 
         
 
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"SignalR error: {ex.Message}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"SignalR error: {ex.Message}");
 
-            }
+            //}
 
             await _projectActivityService.Add(new ProjectActivity
             {

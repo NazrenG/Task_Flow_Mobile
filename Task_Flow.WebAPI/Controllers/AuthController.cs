@@ -194,22 +194,27 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
 
-        [HttpGet("{email}")]
-        public async Task<IActionResult> GetUserWithEmail(string email)
+        //[HttpGet("{email}")]
+        //public async Task<IActionResult> GetUserWithEmail(string email)
+        //{
+
+        //    if (string.IsNullOrWhiteSpace(email))
+        //    {
+        //        return BadRequest("Email is required.");
+        //    }
+        //    var user = await _userManager.FindByEmailAsync(email);
+
+        //    if (user == null)
+        //    {
+        //        return NotFound($"No user found with the email: {email}");
+        //    }
+
+        //    return Ok(user);
+        //}
+        [HttpGet("Test")]
+        public IActionResult Test()
         {
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return BadRequest("Email is required.");
-            }
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                return NotFound($"No user found with the email: {email}");
-            }
-
-            return Ok(user);
+            return Ok(new {message="sdhbfvshfvb"});
         }
 
     }

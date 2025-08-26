@@ -272,7 +272,7 @@ namespace Task_Flow.WebAPI.Controllers
     //            //project activity log signalr project sehifesi
     //            await _hub.Clients.User(task.CreatedById).SendAsync("ProjectsRecentActivity");
     //            await _hub.Clients.User(userId).SendAsync("ProjectsRecentActivity");
-    //            // request getsin taski edit olan sexse
+                // request getsin taski edit olan sexse
                 var request = new RequestNotification
                 {
                     IsAccepted = false,
@@ -283,7 +283,7 @@ namespace Task_Flow.WebAPI.Controllers
                     SentDate = DateTime.UtcNow,
                     Text = $"Your task edit by {project.CreatedBy?.Firstname} {project.CreatedBy?.Lastname} in the project named {project.Title} "
                 };
-                await _requestNotificationService.Add(request);
+                //await _requestNotificationService.Add(request);
                 //await _hub.Clients.User(task.CreatedById).SendAsync("RequestList2");
                 //await _hub.Clients.User(task.CreatedById).SendAsync("RequestCount");
                 //await _hub.Clients.User(task.CreatedById).SendAsync("RequestList");

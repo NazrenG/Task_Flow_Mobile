@@ -129,7 +129,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             var item = await notificationService.GetNotificationById(id);
             if (item == null) { return BadRequest(new { message = "not found message" }); }
-            //await notificationService.Delete(item);
+            await notificationService.Delete(item);
             //await _hub.Clients.User(userId).SendAsync("ReminderRequestList");
             //await _hub.Clients.User(userId).SendAsync("CalendarNotificationCount");
             //await _hub.Clients.User(userId).SendAsync("CalendarNotificationList2");
@@ -426,7 +426,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Type = "Notification",
             };
             await recentActivityService.Add(item);
-            //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+           // await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "delete request notification succesfully" });
         }
         [Authorize]
@@ -462,7 +462,7 @@ namespace Task_Flow.WebAPI.Controllers
                     IsFriend=true,
                 });
 
-            //await _hub.Clients.User(request.SenderId).SendAsync("UpdateMessageFriendList");
+          //  await _hub.Clients.User(request.SenderId).SendAsync("UpdateMessageFriendList");
             }
 
             
@@ -477,7 +477,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Type = "Notification",
             };
             await recentActivityService.Add(item);
-            //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
             return Ok(new { message = "accept request succesfuly" });
         }

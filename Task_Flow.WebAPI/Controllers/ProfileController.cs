@@ -39,15 +39,29 @@ namespace Task_Flow.WebAPI.Controllers
             _emailService = emailService;
             _fileService = fileService;
         }
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto value)
+        {
+            //maili gonderirsen eger dogrudursa true qaytarir
+            var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
+            if (!isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
 
-        [HttpGet("{email}")]
+            var code = _emailService.sendVerifyMail(value.NameOrEmail);
+            _verificationCodes[value.NameOrEmail] = code;
+
+            // Mail göndermek hissesini yaz,code -u ora gonder
+
+            return Ok(new { Result = true, Message = "Verification code sent" });
+
+        }
+        [HttpGet("GetByEmail/{email}")]
         public async Task<IActionResult> GetUserProfile(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound("User not foundjbhvjhhj");
             }
 
             return Ok(new
@@ -74,7 +88,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound("User not foukbhbhibnd");
             }
 
             return Ok(new
@@ -117,21 +131,7 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new { Message = "Error", Code = -1 });
 
         }
-        [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto value)
-        {
-            //maili gonderirsen eger dogrudursa true qaytarir
-            var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (!isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
 
-            var code = _emailService.sendVerifyMail(value.NameOrEmail);
-            _verificationCodes[value.NameOrEmail] = code;
-
-            // Mail göndermek hissesini yaz,code -u ora gonder
-
-            return Ok(new { Result = true, Message = "Verification code sent" });
-
-        }
         [HttpPost("verify-code")]//4 reqemli kod duzdurse
 
         public IActionResult VerifyCode(VerifyCodeDto model)
@@ -147,7 +147,7 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return Ok(new { message = "User not found" });
+            if (user == null) return Ok(new { message = "User not mjnjnjj" });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
@@ -181,20 +181,20 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not found" });
+                return BadRequest(new { message = "User not foujnjjnd" });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = "User not jnjjjjjkkpp" });
             }
 
             user.IsOnline = false;
             await _userService.Update(user);
-        
-            //await _signInManager.SignOutAsync();
-            //await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
+
+            await _signInManager.SignOutAsync();
+           // await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
 
             return Ok(new { message = "Logout successful" });
         }
@@ -218,7 +218,7 @@ namespace Task_Flow.WebAPI.Controllers
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found." });
+                return NotFound(new { message = "User not found.dxeseswswe" });
             }
 
             var temp = dto.Fullname?.Split(" ");
@@ -233,7 +233,7 @@ namespace Task_Flow.WebAPI.Controllers
             user.Gender = dto.Gender;
 
             await _userService.Update(user);
-            //await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
+          //  await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
             //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
             return Ok(new { message = "Edit successful" });
@@ -257,7 +257,7 @@ namespace Task_Flow.WebAPI.Controllers
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found." });
+                return NotFound(new { message = "User not foundhhhhh." });
             }
             if (file != null)
             {
@@ -266,7 +266,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             await _userService.Update(user);
-            //await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated"); 
+           // await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
             //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "Edit successful" });
         }
@@ -286,6 +286,20 @@ namespace Task_Flow.WebAPI.Controllers
 
             return Ok(new { message = "Add occupation successful" });
         }
+        [HttpGet("test-users")]
+        public async Task<IActionResult> TestUsers()
+        {
+            var allUsers = await _userService.GetUsers();
+            return Ok(allUsers);
+        }
+
+        [HttpGet("check-db-connection")]
+        public IActionResult CheckDbConnection([FromServices] IConfiguration config)
+        {
+            var conn = config.GetConnectionString("DefaultConnection");
+            return Ok(conn);
+        }
+
 
     }
 
