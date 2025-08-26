@@ -8,7 +8,7 @@ using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -20,15 +20,15 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IRequestNotificationService _requestNotificationService;
-        private readonly IHubContext<ConnectionHub> hubContext;
+        //private readonly IHubContext<ConnectionHub> hubContext;
 
-        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager, IRequestNotificationService requestNotificationService, IHubContext<ConnectionHub> hubContext)
+        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager, IRequestNotificationService requestNotificationService)
         {
             this.friendService = friendService;
             _userService = userService;
             _userManager = userManager;
             _requestNotificationService = requestNotificationService;
-            this.hubContext = hubContext;
+            //this.hubContext = hubContext;
         }
 
         [Authorize]
@@ -153,5 +153,20 @@ namespace Task_Flow.WebAPI.Controllers
             return Ok(new { message = "accept request succesfuly" });
 
         }
+
+
+        [Authorize]
+        [HttpGet("GetFriendContacts/{friendMail}")]
+        public async Task<IActionResult> GetFriendContacts(string friendMail)
+        {
+            var friend = await _userManager.FindByEmailAsync(friendMail);
+            if (friend == null) { return Ok(new { message = "friend not found" }); }
+            var dto = new FriendContactInfoDto{
+            Number=friend?.PhoneNumber,
+            Email=friend?.Email};
+            return Ok(dto);
+        }
+
+
     }
 }

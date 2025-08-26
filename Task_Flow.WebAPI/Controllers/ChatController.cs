@@ -9,7 +9,7 @@ using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -21,19 +21,19 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IFriendService friendService;
         private readonly IChatMessageService chatMessageService;
         private readonly IChatService chatService;
-        private readonly IHubContext<ConnectionHub> hubContext;
+        //private readonly IHubContext<ConnectionHub> hubContext;
 
-        public ChatController(IUserService userService, IFriendService friendService, IHubContext<ConnectionHub> hubContext, IChatService chatService, IChatMessageService chatMessageService)
+        public ChatController(IUserService userService, IFriendService friendService, IChatService chatService, IChatMessageService chatMessageService)
         {
             this.userService = userService;
             this.friendService = friendService;
-            this.hubContext = hubContext;
+            //this.hubContext = hubContext;
             this.chatService = chatService;
             this.chatMessageService = chatMessageService;
         }
 
         [Authorize]
-        [HttpGet("AllChatsWithFriends")]
+        [HttpGet("AllChatsWithFriends")]//+
         public async Task<IActionResult> GetAllFriends()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -67,6 +67,8 @@ namespace Task_Flow.WebAPI.Controllers
                 var user = await userService.GetUserById(item.UserFriendId);
                 sorted.Add(new FriendForMessageDto
                 {
+                   
+                    RecentMessageDate = (latestmessage == null ? "" : latestmessage.SentDate.ToString()),
                     FriendFullname = user.Firstname + " " + user.Lastname,
                     FriendEmail = user.Email,
                     FriendImg = user.Image,
@@ -77,13 +79,13 @@ namespace Task_Flow.WebAPI.Controllers
 
             }
 
-
             sorted =  sorted.OrderBy(x => x.isReciever).ToList();
 
             return Ok(new { List = sorted });
 
 
         }
+       
 
         [Authorize]
         [HttpGet("UserMessages")]

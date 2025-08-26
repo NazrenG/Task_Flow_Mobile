@@ -9,7 +9,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -17,15 +17,15 @@ namespace Task_Flow.WebAPI.Controllers
     [ApiController]
     public class ChatMessageController : ControllerBase
     {
-        private readonly IHubContext<ConnectionHub> _hub;
+        //private readonly IHubContext<ConnectionHub> _hub;
         private readonly IChatService _chatService;
         private readonly IChatMessageService _chatMessageService;
         private readonly IUserService _userService;
         private readonly UserManager<CustomUser> _userManager;
 
-        public ChatMessageController(IHubContext<ConnectionHub> hub, IChatService chatService, IChatMessageService chatMessageService, IUserService userService, UserManager<CustomUser> userManager)
+        public ChatMessageController(IChatService chatService, IChatMessageService chatMessageService, IUserService userService, UserManager<CustomUser> userManager)
         {
-            _hub = hub;
+            //_hub = hub;
             _chatService = chatService;
             _chatMessageService = chatMessageService;
             _userService = userService;
@@ -54,7 +54,7 @@ namespace Task_Flow.WebAPI.Controllers
             var message = new ChatMessage { Content = dto.Text, SenderId = userId, SentDate = DateTime.UtcNow, ChatId = chat.Id ,IsImage=dto.IsImage};
 
             await _chatMessageService.AddAsync(message);
-            await _hub.Clients.User(userId).SendAsync("ReceiveMessages2",friend.Email);
+            //await _hub.Clients.User(userId).SendAsync("ReceiveMessages2",friend.Email);
 
             return Ok(new {SenderId=userId,FriendId=friend.Id});
         }

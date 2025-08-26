@@ -10,7 +10,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -24,12 +24,12 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IQuizService _quizService;
         private readonly IUserService _userService;
-        private readonly IHubContext<ConnectionHub> _context;
+        //private readonly IHubContext<ConnectionHub> _context;
 
-        public AuthController(UserManager<CustomUser> userManager,IHubContext<ConnectionHub> hub, IConfiguration configuration, IQuizService quizService, IUserService userService)
+        public AuthController(UserManager<CustomUser> userManager, IConfiguration configuration, IQuizService quizService, IUserService userService)
         {
             _userManager = userManager;
-            _context= hub;
+            //_context= hub;
             _quizService = quizService;
             _userService = userService;
             _configuration = configuration;
@@ -84,7 +84,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 user.IsOnline = true;
                 await _userService.Update(user); 
-                await _context.Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
+                //await _context.Clients.All.SendAsync("ReceiveConnectInfo", $"{user.UserName} has connected");
 
                 var userRoles = await _userManager.GetRolesAsync(user);
 

@@ -11,7 +11,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -21,19 +21,19 @@ namespace Task_Flow.WebAPI.Controllers
     {
         private readonly UserManager<CustomUser> _userManager;
         private readonly IConfiguration _configuration;
-        private readonly IHubContext<ConnectionHub> _hubContext;
+        //private readonly IHubContext<ConnectionHub> _hubContext;
         private readonly IUserService _userService;
         private readonly MailService _emailService;
         private readonly SignInManager<CustomUser> _signInManager;
         private static readonly Dictionary<string, int> _verificationCodes = new();
         private readonly IFileService _fileService;
 
-        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration, IHubContext<ConnectionHub> hubContext,
+        public ProfileController(UserManager<CustomUser> userManager, IConfiguration configuration,
             IUserService userService, SignInManager<CustomUser> signInManager, MailService emailService, IFileService fileService)
         {
             _userManager = userManager;
             _configuration = configuration;
-            _hubContext = hubContext;
+            //_hubContext = hubContext;
             _userService = userService;
             _signInManager = signInManager;
             _emailService = emailService;
@@ -193,8 +193,8 @@ namespace Task_Flow.WebAPI.Controllers
             user.IsOnline = false;
             await _userService.Update(user);
         
-            await _signInManager.SignOutAsync();
-            await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
+            //await _signInManager.SignOutAsync();
+            //await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
 
             return Ok(new { message = "Logout successful" });
         }
@@ -233,8 +233,8 @@ namespace Task_Flow.WebAPI.Controllers
             user.Gender = dto.Gender;
 
             await _userService.Update(user);
-            await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
-            await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            //await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
+            //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
             return Ok(new { message = "Edit successful" });
         }
@@ -266,8 +266,8 @@ namespace Task_Flow.WebAPI.Controllers
             }
 
             await _userService.Update(user);
-            await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated"); 
-            await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            //await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated"); 
+            //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
             return Ok(new { message = "Edit successful" });
         }
 

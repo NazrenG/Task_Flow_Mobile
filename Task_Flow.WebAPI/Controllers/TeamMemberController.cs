@@ -11,7 +11,7 @@ using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.SignalR;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -24,18 +24,18 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITeamMemberService _teamMemberService;
         private readonly IProjectService _projectService;
         private readonly MailService mailService;
-        private readonly IHubContext<ConnectionHub> _hub;
+        //private readonly IHubContext<ConnectionHub> _hub;
         private readonly  IRequestNotificationService _requestNotificationService;
         private readonly INotificationSettingService _notificationSettingService;
 
-        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService, IHubContext<ConnectionHub> hub, INotificationSettingService notificationSettingService,MailService mailServicse)
+        public TeamMemberController(ITeamMemberService teamMemberService, IUserService userService, IProjectService projectService, IRequestNotificationService requestNotificationService,  INotificationSettingService notificationSettingService,MailService mailServicse)
         {
             _userService = userService;
             _teamMemberService = teamMemberService;
             _projectService = projectService;
             this.mailService = mailServicse;
             _requestNotificationService = requestNotificationService;
-            _hub = hub;
+            //_hub = hub;
             
             _notificationSettingService = notificationSettingService;
         }
@@ -169,9 +169,9 @@ namespace Task_Flow.WebAPI.Controllers
                     };
                     await _requestNotificationService.Add(request);
                     //notification list
-                    await _hub.Clients.User(user.Id).SendAsync("RequestList2");
-                    await _hub.Clients.User(user.Id).SendAsync("RequestCount");
-                    await _hub.Clients.User(user.Id).SendAsync("RequestList");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestList2");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestCount");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestList");
                     //proyektde istirrak ucun egere icaze varsa mail gedir
                     var notificationSetting = await _notificationSettingService.GetNotificationSetting(user.Id);
                     if (notificationSetting.NewTaskWithInProject)
@@ -252,9 +252,9 @@ namespace Task_Flow.WebAPI.Controllers
                         Text = "Hi, I am "+sender.Firstname+" "+sender.Lastname+ ". I want to invite you to my project named: " + project,
                     };
                     await _requestNotificationService.Add(request);
-                    await _hub.Clients.User(user.Id).SendAsync("RequestList");
-                    await _hub.Clients.User(user.Id).SendAsync("RequestList2");
-                    await _hub.Clients.User(user.Id).SendAsync("RequestCount");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestList");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestList2");
+                    //await _hub.Clients.User(user.Id).SendAsync("RequestCount");
                     mailService.SendEmail(user.Email, sender.Firstname + "" + sender.Lastname + " invited you to their project " + project);
                     ///signalr
                 }
@@ -293,7 +293,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _teamMemberService.DeleteTeamMemberAsync(dto.ProjectId,user.Id);
             var project = await _projectService.GetProjectById(dto.ProjectId);
             mailService.SendEmail(user.Email, "You were removed from project " + project.Title + " at " + DateTime.UtcNow.ToShortDateString() + " by PM");
-            await _hub.Clients.User(currentUserId).SendAsync("ReceiveProjectUpdate");
+            //await _hub.Clients.User(currentUserId).SendAsync("ReceiveProjectUpdate");
             return Ok();
 
         }

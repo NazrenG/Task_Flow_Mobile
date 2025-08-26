@@ -1,21 +1,21 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿//using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using Task_Flow.Business.Abstract;
 using Task_Flow.Business.Cocrete;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
-using Task_Flow.WebAPI.Hubs;
+//using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Services
 {
     public class ReminderService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider; 
-        private readonly IHubContext<ConnectionHub> _context;
+        //private readonly IHubContext<ConnectionHub> _context;
 
-        public ReminderService(IServiceProvider serviceProvider,IHubContext<ConnectionHub> hubContext)
+        public ReminderService(IServiceProvider serviceProvider)
         {
-            _context = hubContext;
+            //_context = hubContext;
             _serviceProvider = serviceProvider; 
         }
 
@@ -134,9 +134,9 @@ namespace Task_Flow.WebAPI.Services
 
         private async Task NotifyUser(string id)
         {
-            await _context.Clients.User(id).SendAsync("ReminderRequestList");
-            await _context.Clients.User(id).SendAsync("CalendarNotificationCount");
-            await _context.Clients.User(id).SendAsync("CalendarNotificationList2");
+            //await _context.Clients.User(id).SendAsync("ReminderRequestList");
+            //await _context.Clients.User(id).SendAsync("CalendarNotificationCount");
+            //await _context.Clients.User(id).SendAsync("CalendarNotificationList2");
         }
     }
 }
