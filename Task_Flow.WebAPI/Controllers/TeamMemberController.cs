@@ -11,6 +11,7 @@ using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.SignalR;
+using System.Runtime.InteropServices;
 //using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
@@ -140,16 +141,37 @@ namespace Task_Flow.WebAPI.Controllers
                 var senderId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var sender = await _userService.GetUserById(senderId);
                 var list = await _teamMemberService.GetTaskMemberListById(dto.ProjectId);
-                await _teamMemberService.RemoveMembers(list);
+                //await _teamMemberService.RemoveMembers(list);
 
-                foreach (var username in dto.Members)
+                foreach (var member in dto.Members)
                 {
-                    var user = await _userService.GetOneUSerByUsername(username);
+                    var user = await _userService.GetUserById(member.Id);
                     var project = await _projectService.GetProjectNameById(dto.ProjectId);
+                    //var teamMembers = await _teamMemberService.GetTaskMemberListById(dto.ProjectId);
+
                     //var isCheck = await _teamMemberService.GetTaskMemberById(user.Id);
                     if (user == null)
                     {
-                        return NotFound(new { Message = $"User '{username}' not found." });
+                        return NotFound(new { Message = "User not found." });
+                    }
+                    if (member.IsRequested==true)
+                    {
+                        var existingRequests = await _requestNotificationService.GetNotificationsBySenderId(senderId);
+                        foreach (var req in existingRequests.Where(r => r.ReceiverId ==member.Id&& r.NotificationType == "ProjectRequest" && r.ProjectName == project))
+                        {
+                            await _requestNotificationService.Delete(req);
+                        }
+                        continue; 
+                    }
+
+                    if (member.IsSelected == true)
+                    {
+                        var existingMember = list.FirstOrDefault(tm => tm.UserId == user.Id);
+                        if (existingMember != null)
+                        {
+                            await _teamMemberService.DeleteTeamMemberAsync(dto.ProjectId,existingMember.UserId);
+                        }
+                        continue; // skip sending new request
                     }
 
                     //var teamMember = new TeamMember
@@ -174,12 +196,12 @@ namespace Task_Flow.WebAPI.Controllers
                     //await _hub.Clients.User(user.Id).SendAsync("RequestList");
                     //proyektde istirrak ucun egere icaze varsa mail gedir
                     var notificationSetting = await _notificationSettingService.GetNotificationSetting(user.Id);
-                    if (notificationSetting.NewTaskWithInProject)
+                    if (notificationSetting?.NewTaskWithInProject==true)
                     {
                         mailService.SendEmail(user.Email, $"Hi,{user.Firstname} {user.Lastname}.You have a new task in the project named {project} ");
 
                     }
-
+                  
 
                     //await _teamMemberService.Add(teamMember);
                 }
@@ -191,20 +213,40 @@ namespace Task_Flow.WebAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while adding team members.", Details = ex.Message });
             }
         }
-        [HttpGet("GetUsersByProject/{projectId}")]//nezrin
+        
+        
+        
+        
+        [Authorize]
+        [HttpGet("GetUsersByProject/{projectId}")]//nezrin+sevgi
         public async Task<IActionResult> GetUsersByProject(int projectId)
         {
-            var users = await _teamMemberService.GetTaskMemberListById(projectId);
-            var list=users.Select(tm=> new TeamUserDto
-            {   Id = tm.UserId,
-                    Name =$"{tm.User.Firstname} {tm.User.Lastname}" ,
-                    Phone=tm.User.PhoneNumber,
-                    Occupation=tm.User.Occupation,
-                    Email=tm.User.Email,
-                    Photo=tm.User.Image,IsOnline=tm.User.IsOnline,
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized();
+            var allUsers = await _userService.GetUsers();
+            var allReq = await _requestNotificationService.GetAll();
+            var projectName=await _projectService.GetProjectNameById(projectId);
+            //var currentProjectReq = allReq.Select(p => p.ProjectName == projectName);
+            var projectUsers = await _teamMemberService.GetTaskMemberListById(projectId);
+            var selectedUserIds = projectUsers.Select(tm => tm.UserId).ToHashSet();
+            var requestedUserIds = allReq.Where(p=>p.ProjectName==projectName).Select(ri=>ri.ReceiverId).ToHashSet();
 
-            }).ToList();
-         
+           
+
+
+            var list = allUsers.Where(u => u.Id != currentUserId).Select(u => new TeamUserDto
+            {
+                Id = u.Id,
+                Name = $"{u.Firstname} {u.Lastname}",
+                Email=u.Email,
+               IsRequested=requestedUserIds.Contains(u.Id),
+                IsSelected = selectedUserIds.Contains(u.Id) 
+            })
+            .OrderByDescending(u => u.IsSelected)
+            .ThenByDescending(u => u.IsRequested)
+            .ToList();
+
             return Ok(list);
         }
  
@@ -225,7 +267,7 @@ namespace Task_Flow.WebAPI.Controllers
 
                 foreach (var username in dto.Members)
                 {
-                    var user = await _userService.GetOneUSerByUsername(username);
+                    var user = await _userService.GetUserById(username.Id);
                     //var isCheck = await _teamMemberService.GetTaskMemberById(user.Id);
                     if (user == null)
                     {

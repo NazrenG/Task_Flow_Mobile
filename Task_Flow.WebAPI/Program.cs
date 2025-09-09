@@ -9,7 +9,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.DataAccess.Concrete;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
-//using Task_Flow.WebAPI.Hubs;
+using Task_Flow.WebAPI.Hubs;
 using Task_Flow.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,21 +102,39 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Issuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
-    //options.Events = new JwtBearerEvents
-    //{
-    //    OnMessageReceived = context =>
-    //    {
-    //        var accessToken = context.Request.Query["access_token"];
-    //        var path = context.HttpContext.Request.Path;
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
 
-    //        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/connect"))
-    //        {
-    //            context.Token = accessToken;
-    //        }
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/connect"))
+            {
+                context.Token = accessToken;
+            }
 
-    //        return Task.CompletedTask;
-    //    }
-    //};
+            return Task.CompletedTask;
+        }
+    };
+});
+
+
+builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNgrok", policy =>
+    {
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithOrigins(
+                "https://0c81393060c0.ngrok-free.app",   // your ngrok URL
+                "http://localhost:8081",   // Web/Emulator
+                "http://192.168.1.5:8081"             // for Expo / emulator
+            );
+    });
 });
 
 // App configuration
@@ -128,15 +146,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+app.UseCors("AllowNgrok");
 //app.UseHttpsRedirection();
 
-app.UseCors(x =>
-{
-    x.AllowAnyMethod()
-    .AllowAnyHeader()
-    .SetIsOriginAllowed(origin => true)
-    .AllowCredentials();
-});
+//app.UseCors(x =>
+//{
+//    x.AllowAnyMethod()
+//    .AllowAnyHeader()
+//    .SetIsOriginAllowed(origin => true)
+//    .AllowCredentials();
+//});
 
 
 
@@ -144,7 +164,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers(); 
-//app.MapHub<ConnectionHub>("/connect");
+app.MapControllers();
+app.MapHub<ConnectionHub>("/hubs/connection");
+
 
 app.Run();

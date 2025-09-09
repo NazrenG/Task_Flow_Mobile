@@ -13,7 +13,7 @@ using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Data;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-//using Task_Flow.WebAPI.Hubs;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -27,11 +27,11 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly ITaskService _taskService;
         private readonly ITeamMemberService _teamMemberService;
         private readonly IProjectActivityService _projectActivity;
-        //private readonly IHubContext<ConnectionHub> _hub;
+        private readonly IHubContext<ConnectionHub> _hub;
         private readonly IRequestNotificationService _requestNotificationService;
         private readonly Business.Cocrete.MailService mailService;
 
-        public ProjectController(IProjectService projectService, TaskFlowDbContext context, IUserService userService, ITaskService taskService, ITeamMemberService teamMemberService, IProjectActivityService projectActivity, IRequestNotificationService requestNotificationService, Business.Cocrete.MailService mailService)
+        public ProjectController(IProjectService projectService, TaskFlowDbContext context, IUserService userService, IHubContext<ConnectionHub> hub, ITaskService taskService, ITeamMemberService teamMemberService, IProjectActivityService projectActivity, IRequestNotificationService requestNotificationService, Business.Cocrete.MailService mailService)
         {
             _projectService = projectService;
             _context = context;
@@ -39,7 +39,7 @@ namespace Task_Flow.WebAPI.Controllers
             _taskService = taskService;
             _teamMemberService = teamMemberService;
             _projectActivity = projectActivity;
-            //_hub = hub;
+            _hub = hub;
             _requestNotificationService = requestNotificationService;
             this.mailService = mailService;
         }
@@ -139,45 +139,54 @@ namespace Task_Flow.WebAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("{id}")] ///Sevgi
         public async Task<IActionResult> GetProject(int id)
         {
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user =await _userService.GetUserById(userId);
+            if (user == null)
+                return NotFound();
             var item = await _projectService.GetProjectById(id);
             if (item == null)
             {
                 return NotFound();
             }
 
-            var project = new ProjectDto
+            var project = new ProjectDetailsDto
             {
-                //Owner = item.CreatedBy?.UserName,
-                OwnerMail=item.CreatedBy?.Email,    
-                IsCompleted = item.IsCompleted,
+                ProjectName = item.Title,
                 Description = item.Description,
-                Title = item.Title,
-                Color = item.Color,
-                StartDate = item.StartDate,
-                EndDate = item.EndDate,
-                Status = item.Status,  
-               
+                StartDate = item.StartDate.ToString(),
+                EndDate = item.EndDate.ToString(),
+                Status = item.Status,
+                Color=item.Color,
+                OwnerName = user.Firstname + " " + user.Lastname,
+                OwnerEmail = user.Email,
+                Occupation = user.Occupation,
+                Gender = user.Gender,
+                Birthday = user.Birthday.ToString(),
+                Phone=user.PhoneNumber,
+                IsOnline=user.IsOnline,
+                Country=user.Country,
             };
 
-            var teamMembers = await _teamMemberService.GetTaskMemberListById(id);
-            var memberUsernames = new List<string>();
-            var membersPath=new List<string>(); 
+           // var teamMembers = await _teamMemberService.GetTaskMemberListById(id);
+           // var memberUsernames = new List<string>();
+           // var membersPath=new List<string>(); 
 
-            foreach (var teamMember in teamMembers)
-            {
-                var user = await _userService.GetUserById(teamMember.UserId);
-                if (user != null)
-                {
-                    memberUsernames.Add(user.UserName);
-                    membersPath.Add(user.Image); 
-                }
-            }
+           // foreach (var teamMember in teamMembers)
+           // {
+                
+           //     if (user != null)
+           //     {
+           //         memberUsernames.Add(user.UserName);
+           //         membersPath.Add(user.Image); 
+           //     }
+           // }
 
-            project.Members = memberUsernames;
-           project.MembersPath = membersPath;
+           //// project.Members = memberUsernames;
+           ////project.MembersPath = membersPath;
 
             return Ok(project);
         }
@@ -309,12 +318,20 @@ namespace Task_Flow.WebAPI.Controllers
 
         [Authorize]
         [HttpGet("AllProjectsUserOwn")]
-        public async Task<IActionResult> GetUserOwnProjects()
+        public async Task<IActionResult> GetUserOwnProjects()///dto
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var list = await _projectService.GetProjects(userId);
 
-            return Ok(list);
+            var projects = await _projectService.GetProjects(userId);
+
+            var dtoList = projects.Select(p => new UserProjects
+            {
+                ProjectId = p.Id,           
+                Title = p.Title,            
+                EndDate = p.EndDate.ToString("yyyy-MM-dd") 
+            }).ToList();
+
+            return Ok(dtoList);
 
         }
 
@@ -352,14 +369,14 @@ namespace Task_Flow.WebAPI.Controllers
         }
 
         // POST api/<ProjectController>
-        [Authorize]///Sevgi
+        [Authorize]///Sevgi +++
         [HttpPost]///Sevgi
         public async Task<IActionResult> Post([FromBody] ProjectDto value)
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 
-            var item = new Project
+             var item = new Project
             {
                 CreatedById = userId,
                 CreatedAt = DateTime.UtcNow,
@@ -377,15 +394,15 @@ namespace Task_Flow.WebAPI.Controllers
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = item.Id, Text = "created a new Project named: " + item.Title });
             //var count=await _projectService.
             //await _hub.Clients.All.SendAsync("ProjectCountUpdate");
-            //await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
-            //await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
-            //await _hub.Clients.User(userId).SendAsync("UpdateTotalProjects");//s
-            //if (value.Status == "On Going")
-            //    await _hub.Clients.User(userId).SendAsync("UpdateOnGoingProjects");
-            //else if (value.Status == "Pending")
-            //    await _hub.Clients.User(userId).SendAsync("UpdatePendingProjects");
-            //else if (value.Status == "Completed")
-            //    await _hub.Clients.User(userId).SendAsync("UpdateCompletedProjects");
+            await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            await _hub.Clients.User(userId).SendAsync("UpdateTotalProjects");
+            if (value.Status == "On Going")
+                await _hub.Clients.User(userId).SendAsync("UpdateOnGoingProjects");
+            else if (value.Status == "Pending")
+                await _hub.Clients.User(userId).SendAsync("UpdatePendingProjects");
+            else if (value.Status == "Completed")
+                await _hub.Clients.User(userId).SendAsync("UpdateCompletedProjects");
             return Ok(item);
         }
 
@@ -406,12 +423,12 @@ namespace Task_Flow.WebAPI.Controllers
             item.EndDate = dto.EndDate;
             await _projectService.Update(item);
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Changed Project Title to: " + item.Title });
-        //    await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
-        //    await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
-           
-    
-        //await _hub.Clients.All.SendAsync("ReceiveProjectUpdateDashboard");
-    
+            await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+
+
+            //await _hub.Clients.All.SendAsync("ReceiveProjectUpdateDashboard");
+
             return Ok();
 
         }
@@ -480,7 +497,15 @@ namespace Task_Flow.WebAPI.Controllers
             }
             await _projectActivity.Add(new ProjectActivity { UserId = userId, ProjectId = id, Text = "Project (" + item.Title + ") Deleted!" });
             await _projectService.Delete(item);
-            //await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            await _hub.Clients.User(userId).SendAsync("RecieveInProgressUpdate");
+            await _hub.Clients.User(userId).SendAsync("ReceiveProjectUpdate");
+            await _hub.Clients.User(userId).SendAsync("UpdateTotalProjects");
+            if (item.Status == "On Going")
+                await _hub.Clients.User(userId).SendAsync("UpdateOnGoingProjects");
+            else if (item.Status == "Pending")
+                await _hub.Clients.User(userId).SendAsync("UpdatePendingProjects");
+            else if (item.Status == "Completed")
+                await _hub.Clients.User(userId).SendAsync("UpdateCompletedProjects");
             //await _hub.Clients.User(userId).SendAsync("RequestList");
             return Ok(item);
         }

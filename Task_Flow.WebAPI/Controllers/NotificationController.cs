@@ -477,7 +477,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Type = "Notification",
             };
             await recentActivityService.Add(item);
-            await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
+            //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
             return Ok(new { message = "accept request succesfuly" });
         }
