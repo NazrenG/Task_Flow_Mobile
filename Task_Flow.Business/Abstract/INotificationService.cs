@@ -8,6 +8,8 @@ namespace Task_Flow.Business.Abstract
         Task<Notification> GetNotificationById(int id);
         Task Add(Notification notification);
         Task<int> GetCount();
+        //Task<Notification?> GetRequestByUsers(string senderId, string receiverId);
+
         Task Delete(Notification notification);
     }
 }

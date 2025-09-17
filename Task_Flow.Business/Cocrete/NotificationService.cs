@@ -38,5 +38,10 @@ namespace Task_Flow.Business.Cocrete
            var list= await notificationDal.GetAll();
             return list.Count();
         }
+        //public async Task<Notification?> GetRequestByUsers(string senderId, string receiverId)
+        //{
+        //    return await notificationDal.GetById(p => p. == senderId && p.ReceiverId == receiverId);
+        //}
+
     }
 }
