@@ -72,7 +72,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return Ok(new { Status = "Success", Message = "User created successfully!" });
             }
 
-            return Ok(new { Status = "Error", Message = "User creation failed!", Errors = result.Errors });
+            return Ok(new { Status = "Error", Message = "error.auth.userCreationFailed", Errors = result.Errors });
         }
 
         [HttpPost("signin")]
@@ -135,12 +135,12 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetCurrentUserData()
         {
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null) return NotFound(new { Message = "user not found" });
+            if (userId == null) return NotFound(new { Message = "error.usernotFound" });
             var user = await _userService.GetUserById(userId);
 
             if (user == null)
             {
-                return NotFound(new { Status = "Error", Message = "User not found!" });
+                return NotFound(new { Status = "Error", Message = "error.usernotFound" });
             }
 
             return Ok(new
@@ -175,13 +175,13 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { message = "User is not authenticated" });
+                return Unauthorized(new { message = "error.userNotAuth" });
             }
              
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = "error.usernotFound" });
             } 
             var result = await _userManager.DeleteAsync(user);
 
@@ -190,7 +190,7 @@ namespace Task_Flow.WebAPI.Controllers
                 return Ok(new { message = "Account deleted successfully" });
             }
              
-            return BadRequest(new { message = "Failed to delete account", errors = result.Errors });
+            return BadRequest(new { message = "error.auth.failedToDelete", errors = result.Errors });
         }
 
 

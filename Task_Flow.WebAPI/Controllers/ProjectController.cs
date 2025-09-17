@@ -61,13 +61,13 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
 
             var item = await _userService.GetUserById(userId);
             if (item == null)
             {
-                return NotFound("User not found.");
+                return NotFound("error.usernotFound");
             }
 
             var projectList = await _projectService.GetProjects(userId);
@@ -102,7 +102,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             // var item = await _userService.GetUserById(userId);
             var count = await _projectService.GetUserProjectCount(userId);
@@ -118,24 +118,24 @@ namespace Task_Flow.WebAPI.Controllers
                 var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Unauthorized(new { message = "User not authorized." });
+                    return Unauthorized(new { message = "error.userNotAuth" });
                 }
 
                 if (string.IsNullOrEmpty(title))
                 {
-                    return BadRequest(new { message = "Title is required." });
+                    return BadRequest(new { message = "error.project.titleRequired" });
                 }
                 var project = await _projectService.GetProjectByName(userId, title);
                 if (project == null)
                 {
-                    return NotFound(new { message = "Project not found." });
+                    return NotFound(new { message = "error.project.projectNotFound" });
                 }
 
                 return Ok(project);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred.", details = ex.Message });
+                return StatusCode(500, new { message = "error.project.anErrorOccured", details = ex.Message });
             }
         }
 
@@ -241,13 +241,13 @@ namespace Task_Flow.WebAPI.Controllers
             var task = await _taskService.GetTaskById(id);
             
             if (task == null)
-                return NotFound("Task not found.");
+                return NotFound("error.task.taskNotFound");
 
             var project = await _projectService.GetProjectById(task.ProjectId);
 
             //proyekt sahibi deyise bilsin
             if (project.CreatedById != userId)
-                return BadRequest("You do not have permission to update tasks in this project.");
+                return BadRequest("error.project.youDoNotHavePermission");
 
             task.Status = updateTaskStatusDto.NewStatus;
             await _taskService.Update(task);
@@ -518,7 +518,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
            
             var projects = await _projectService.GetOnGoingProject(userId);
@@ -541,7 +541,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetPendingProject(userId);
             return Ok(projects);
@@ -554,7 +554,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetCompletedTask(userId);
             return Ok(projects);
@@ -568,7 +568,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetOnGoingProject(userId);
             return Ok(projects.Count == null ? 0 : projects.Count);
@@ -582,7 +582,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetPendingProject(userId);
             return Ok(projects.Count == null ? 0 : projects.Count);
@@ -596,7 +596,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetCompletedTask(userId);
             return Ok(projects.Count == null ? 0 : projects.Count);
@@ -610,7 +610,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var projects = await _projectService.GetProjects(userId);
             var names = new List<string>();
@@ -631,7 +631,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             List<string> months = new List<string>();
             DateTime currentDate = DateTime.Now;
@@ -666,7 +666,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.usernotFound");
             }
             var participantProjects = await _teamMemberService.GetProjectListByUserIdAsync(userId);
 

@@ -44,14 +44,14 @@ namespace Task_Flow.WebAPI.Controllers
         {
             //maili gonderirsen eger dogrudursa true qaytarir
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (!isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+            if (!isCheckUser) return Ok(new { Result = false, Message = "error.profile.thismaildosenotexist" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-            return Ok(new { Result = true, Message = "Verification code sent" });
+            return Ok(new { Result = true, Message = "error.profile.verificationcodesent" });
 
         }
         [HttpGet("GetByEmail/{email}")]
@@ -61,7 +61,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User not foundjbhvjhhj");
+                return NotFound("error.usernotFound");
             }
 
             return Ok(new
@@ -88,7 +88,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User not foukbhbhibnd");
+                return NotFound("error.usernotFound");
             }
 
             return Ok(new
@@ -118,7 +118,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Ok(new { Message = "User not authenticated.", Code = -1 });
+                return Ok(new { Message = "error.userNotAuth", Code = -1 });
             }
             var user = await _userService.GetUserById(userId);
             var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, value.OldPassword);
@@ -140,14 +140,14 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 return Ok(new { Result = true, Message = "Code verified" });
             }
-            return Ok(new { Results = false, Message = "Invalid code" });
+            return Ok(new { Results = false, Message = "error.profile.invalidcode" });
         }
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return Ok(new { message = "User not mjnjnjj" });
+            if (user == null) return Ok(new { message = "error.usernotFound" });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
@@ -155,7 +155,7 @@ namespace Task_Flow.WebAPI.Controllers
             if (result.Succeeded)
             {
                 _verificationCodes.Remove(model.Email);
-                return Ok(new { Result = true, Message = "Password reset successful" });
+                return Ok(new { Result = true, Message = "error.profile.passwordreset" });
             }
             return Ok(new { Result = false, Message = result.Errors });
         }
@@ -164,14 +164,14 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] ForgotPasswordDto value)
         {
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+            if (isCheckUser) return Ok(new { Result = false, Message = "error.profile.thismaildosenotexist" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-            return Ok(new { Result = true, Message = "Verification code sent" });
+            return Ok(new { Result = true, Message = "error.profile.verificationcodesent" });
         }
 
         [Authorize]
@@ -181,13 +181,13 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not foujnjjnd" });
+                return BadRequest(new { message = "error.usernotFound" });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not jnjjjjjkkpp" });
+                return NotFound(new { message = "error.usernotFound" });
             }
 
             user.IsOnline = false;
@@ -206,19 +206,19 @@ namespace Task_Flow.WebAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid data provided." });
+                return BadRequest(new { message = "error.profile.invaliddata" });
             }
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found.dxeseswswe" });
+                return NotFound(new { message = "error.usernotFound" });
             }
 
             var temp = dto.Fullname?.Split(" ");
@@ -245,19 +245,19 @@ namespace Task_Flow.WebAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid data provided." });
+                return BadRequest(new { message = "error.profile.invaliddata" });
             }
 
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound(new { message = "User not foundhhhhh." });
+                return NotFound(new { message = "error.usernotFound" });
             }
             if (file != null)
             {
@@ -278,7 +278,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid data provided." });
+                return BadRequest(new { message = "error.profile.invaliddata" });
             }
 
 
