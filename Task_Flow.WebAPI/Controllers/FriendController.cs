@@ -89,14 +89,14 @@ namespace Task_Flow.WebAPI.Controllers
 
                 if (request == null)
                 {
-                    return NotFound(new { message = "Friend request not found or not deletable." });
+                    return NotFound(new { message = "succesfuly.friend.friendrequestnotfound" });
                 }
 
                 await _requestNotificationService.Delete(request);
 
                 await hubContext.Clients.User(userId).SendAsync("UpdateUserActivity");
 
-                return Ok(new { message = "Friend request deleted successfully." });
+                return Ok(new { message = "succesfuly.friend.friendrequestdelete" });
             }
             catch (Exception ex)
             {

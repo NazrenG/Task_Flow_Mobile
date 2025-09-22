@@ -392,7 +392,7 @@ namespace Task_Flow.WebAPI.Controllers
             }
             return Ok(new
             {
-                message = "Activity added successfully",
+                message = "succesfuly.notification.activityAdded",
                 data = new RequestNotificationDto
                 {
                     Text = item.Text,

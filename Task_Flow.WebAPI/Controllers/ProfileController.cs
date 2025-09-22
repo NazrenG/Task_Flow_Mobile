@@ -125,10 +125,10 @@ namespace Task_Flow.WebAPI.Controllers
             if (isPasswordCorrect && value.NewPassword == value.ConfirmPassword)
             {
                 await _userManager.ChangePasswordAsync(user, value.OldPassword, value.NewPassword);
-                return Ok(new { Message = "Change password succesfuly" });
+                return Ok(new { Message = "succesfuly.profile.changepassword" });
             }
 
-            return Ok(new { Message = "Error", Code = -1 });
+            return Ok(new { Message = "error.errortext", Code = -1 });
 
         }
 
@@ -164,14 +164,14 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] ForgotPasswordDto value)
         {
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+            if (isCheckUser) return Ok(new { Result = false, Message = "succesfuly.profile.thismaildosenotexist" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-            return Ok(new { Result = true, Message = "Verification code sent" });
+            return Ok(new { Result = true, Message = "succesfuly.profile.verificationcodesent" });
         }
 
         [Authorize]
@@ -284,7 +284,7 @@ namespace Task_Flow.WebAPI.Controllers
 
 
 
-            return Ok(new { message = "Add occupation successful" });
+            return Ok(new { message = "succesfuly.profile.addoccupation" });
         }
         [HttpGet("test-users")]
         public async Task<IActionResult> TestUsers()
