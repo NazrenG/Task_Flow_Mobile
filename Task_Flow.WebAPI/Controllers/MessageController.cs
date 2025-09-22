@@ -33,7 +33,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest("error.userNotAuth");
             }
 
 
@@ -62,7 +62,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest("User not authenticated.");
+                return BadRequest("error.userNotAuth");
             }
             var chats = await chatService.GetAllChatByUserId(userId);
          var list =new List<ChatMessage>();

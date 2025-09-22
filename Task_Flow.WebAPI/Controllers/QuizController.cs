@@ -95,7 +95,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { message = "User not authenticated." });
+                return Unauthorized(new { message = "error.userNotAuth" });
             }
              
             var userProjects = await _projectService.GetProjects(userId);

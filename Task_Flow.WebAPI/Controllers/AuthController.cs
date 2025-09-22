@@ -69,7 +69,7 @@ namespace Task_Flow.WebAPI.Controllers
             {
                 await _quizService.Add(new Quiz());
                 //await _context.Clients.All.SendAsync("ClientCountUpdate");
-                return Ok(new { Status = "Success", Message = "User created successfully!" });
+                return Ok(new { Status = "Success", Message = "succesfuly.auth.userCreated" });
             }
 
             return Ok(new { Status = "Error", Message = "User creation failed!", Errors = result.Errors });
@@ -187,7 +187,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (result.Succeeded)
             {
-                return Ok(new { message = "Account deleted successfully" });
+                return Ok(new { message = "succesfuly.auth.accountDeleted" });
             }
              
             return BadRequest(new { message = "Failed to delete account", errors = result.Errors });

@@ -40,7 +40,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var list = await userTaskService.GetUserTasks(userId);
@@ -68,7 +68,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = await userTaskService.GetById(id);
 
@@ -92,7 +92,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = await userTaskService.GetById(id);
  
@@ -104,7 +104,7 @@ namespace Task_Flow.WebAPI.Controllers
 
 
 
-            return Ok(new { message = "update succesfuly" });
+            return Ok(new { message = "succesfuly.updatesuccesfuly" });
         }
 
 
@@ -115,7 +115,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = await userTaskService.GetById(id); 
 
@@ -153,7 +153,7 @@ namespace Task_Flow.WebAPI.Controllers
             ////project activity log signalr project sehifesi
             //await _context.Clients.User(item.CreatedById).SendAsync("ProjectsRecentActivity");
             //await _context.Clients.User(userId).SendAsync("ProjectsRecentActivity");
-            return Ok(new { message = "update succesfuly" });
+            return Ok(new { message = "succesfuly.updatesuccesfuly" });
         }
 
 
@@ -164,7 +164,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var item = await userTaskService.GetUserTasks(userId);
@@ -180,12 +180,12 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var checkTitle = await userTaskService.CheckTaskName(value.Title);
             if (checkTitle)
             {
-                return BadRequest(new { message = "this title already has." });
+                return BadRequest(new { message = "error.task.thisTitleAlready" });
             }
 
             var item = new UserTask
@@ -216,7 +216,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = await userTaskService.GetById(taskId);
             if (item == null)
@@ -230,7 +230,7 @@ namespace Task_Flow.WebAPI.Controllers
           // else if (item.Status=="in progress") await _context.Clients.User(userId).SendAsync("RunningTaskCount");
           //else  if (item.Status=="done") await _context.Clients.User(userId).SendAsync("CompletedTaskCount");
           //  await _context.Clients.User(userId).SendAsync("TaskTotalCount");
-            return Ok(new { message = "delete succesful" });
+            return Ok(new { message = "succesfuly.deletesuccesfuly" });
         }
         [Authorize]
         [HttpGet("DailyTask")]
@@ -240,7 +240,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetUserTasks(userId);
             var todayTasks = tasks.Where(d => d.Deadline.Date == DateTime.Now.Date).OrderBy(t => t.StartTime).ToList();
@@ -255,7 +255,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetToDoTask(userId);
             return Ok(tasks);
@@ -268,7 +268,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetToDoTask(userId);
             return Ok(tasks.Count);
@@ -281,7 +281,7 @@ namespace Task_Flow.WebAPI.Controllers
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { message = "error.usernotFound" });
             }
             var tasks = await userTaskService.GetToDoTask(user.Id);
             return Ok(tasks.Count);
@@ -296,7 +296,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetInProgressTask(userId);
             return Ok(tasks);
@@ -309,7 +309,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetInProgressTask(userId);
             return Ok(tasks.Count);
@@ -321,7 +321,7 @@ namespace Task_Flow.WebAPI.Controllers
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { message = "error.usernotFound" });
             }
             var tasks = await userTaskService.GetInProgressTask(user.Id);
             return Ok(tasks.Count);
@@ -335,7 +335,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetDoneTask(userId);
             return Ok(tasks);
@@ -348,7 +348,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var tasks = await userTaskService.GetDoneTask(userId);
             return Ok(tasks.Count);
@@ -360,7 +360,7 @@ namespace Task_Flow.WebAPI.Controllers
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { message = "error.usernotFound" });
             }
 
             var tasks = await userTaskService.GetDoneTask(user.Id);

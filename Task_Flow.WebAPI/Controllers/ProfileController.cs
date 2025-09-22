@@ -44,14 +44,14 @@ namespace Task_Flow.WebAPI.Controllers
         {
             //maili gonderirsen eger dogrudursa true qaytarir
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (!isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+            if (!isCheckUser) return Ok(new { Result = false, Message = "succesfuly.profile.thismaildosenotexist" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-            return Ok(new { Result = true, Message = "Verification code sent" });
+            return Ok(new { Result = true, Message = "succesfuly.profile.verificationcodesent" });
 
         }
         [HttpGet("GetByEmail/{email}")]
@@ -138,7 +138,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             if (_verificationCodes.TryGetValue(model.Email, out var code))
             {
-                return Ok(new { Result = true, Message = "Code verified" });
+                return Ok(new { Result = true, Message = "succesfuly.profile.codeverified" });
             }
             return Ok(new { Results = false, Message = "Invalid code" });
         }
@@ -164,14 +164,14 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] ForgotPasswordDto value)
         {
             var isCheckUser = await _userService.CheckUsernameOrEmail(value.NameOrEmail);
-            if (isCheckUser) return Ok(new { Result = false, Message = "This Mail Does Not Exist!" });
+            if (isCheckUser) return Ok(new { Result = false, Message = "succesfuly.profile.thismaildosenotexist" });
 
             var code = _emailService.sendVerifyMail(value.NameOrEmail);
             _verificationCodes[value.NameOrEmail] = code;
 
             // Mail göndermek hissesini yaz,code -u ora gonder
 
-            return Ok(new { Result = true, Message = "Verification code sent" });
+            return Ok(new { Result = true, Message = "succesfuly.profile.verificationcodesent" });
         }
 
         [Authorize]
@@ -196,7 +196,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _signInManager.SignOutAsync();
            // await _hubContext.Clients.All.SendAsync("UpdateUserActivity");
 
-            return Ok(new { message = "Logout successful" });
+            return Ok(new { message = "succesfuly.profile.logoutsuccesfuly" });
         }
 
 
@@ -236,7 +236,7 @@ namespace Task_Flow.WebAPI.Controllers
           //  await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
             //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
-            return Ok(new { message = "Edit successful" });
+            return Ok(new { message = "succesfuly.profile.editsuccesfuly" });
         }
 
         [Authorize]
@@ -268,7 +268,7 @@ namespace Task_Flow.WebAPI.Controllers
             await _userService.Update(user);
            // await _hubContext.Clients.User(userId).SendAsync("ProfileUpdated");
             //await _hubContext.Clients.User(userId).SendAsync("RecentActivityUpdate1");
-            return Ok(new { message = "Edit successful" });
+            return Ok(new { message = "succesfuly.profile.editsuccesfuly" });
         }
 
 

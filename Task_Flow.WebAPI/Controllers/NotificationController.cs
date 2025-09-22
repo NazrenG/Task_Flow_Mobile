@@ -56,7 +56,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var list = await requestNotificationService.GetRequestNotifications(userId);
@@ -78,7 +78,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var list = await requestNotificationService.GetRequestNotifications(userId);
@@ -102,7 +102,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
            
@@ -125,17 +125,17 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = await notificationService.GetNotificationById(id);
-            if (item == null) { return BadRequest(new { message = "not found message" }); }
+            if (item == null) { return BadRequest(new { message = "error.notification.notFoundMessage" }); }
             await notificationService.Delete(item);
             //await _hub.Clients.User(userId).SendAsync("ReminderRequestList");
             //await _hub.Clients.User(userId).SendAsync("CalendarNotificationCount");
             //await _hub.Clients.User(userId).SendAsync("CalendarNotificationList2");
             ////userin loglari
             //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
-            return Ok(new { message="delete message succesfuly"});
+            return Ok(new { message= "succesfuly.notification.deletemessage" });
         }
 
         [Authorize]
@@ -145,7 +145,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
 
@@ -224,12 +224,12 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
 
             var item = await notificationSettingService.GetOrCreateNotificationSetting(userId);
 
-            return Ok(new { success = true, message = "notification setting" });
+            return Ok(new { success = true, message = "succesfuly.notification.notificationsetting" });
         }
         [Authorize]
         [HttpPost("UpdatedNotificationSetting")]
@@ -239,7 +239,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new { message = "User not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
 
             var item = await notificationSettingService.GetNotificationSetting(userId);
@@ -256,7 +256,7 @@ namespace Task_Flow.WebAPI.Controllers
                     InnovationNewProject = dto.InnovationNewProject,
                 };
                 await notificationSettingService.Add(newNotificationSetting);
-                return Ok(new { message = "new notification service." });
+                return Ok(new { message = "succesfuly.notification.newnotification" });
             }
 
             item.NewTaskWithInProject = dto.NewTaskWithInProject;
@@ -268,7 +268,7 @@ namespace Task_Flow.WebAPI.Controllers
             //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1"); 
 
 
-            return Ok(new { success = true, message = "Update successful" });
+            return Ok(new { success = true, message = "succesfuly.updatesuccesfuly" });
         }
 
 
@@ -282,7 +282,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
 
             var items = await recentActivityService.GetRecentActivities(userId);
@@ -304,7 +304,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
             var item = new RecentActivity
             {
@@ -313,7 +313,7 @@ namespace Task_Flow.WebAPI.Controllers
                 Type = dto.Type,
             };
             await recentActivityService.Add(item);
-            return Ok(new { message = "Activity added successfully" });
+            return Ok(new { message = "succesfuly.notification.activityAdded" });
         }
 
 
@@ -326,7 +326,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
 
        
@@ -355,13 +355,13 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
             var sender=await userService.GetUserById(userId);
             var receiverUser = await _userManager.FindByEmailAsync(dto.ReceiverEmail);
             if (receiverUser == null)
             {
-                return BadRequest(new { message = "Receiver not found" });
+                return BadRequest(new { message = "error.notification.receiverNotFound" });
             }
 
             var item = new RequestNotification
@@ -408,11 +408,11 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
 
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
-            if (request == null) { return BadRequest(new { message = "request not found" }); }
+            if (request == null) { return BadRequest(new { message = "error.notification.requestNotFaund" }); }
          
 
             await requestNotificationService.Delete(request);
@@ -427,7 +427,7 @@ namespace Task_Flow.WebAPI.Controllers
             };
             await recentActivityService.Add(item);
            // await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
-            return Ok(new { message = "delete request notification succesfully" });
+            return Ok(new { message = "succesfuly.notification.deleteRequest" });
         }
         [Authorize]
         [HttpPut("AcceptRequestNotification/{requestId}")]
@@ -436,10 +436,10 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
             var request = await requestNotificationService.GetRequestNotificationById(requestId);
-            if (request == null) { return BadRequest(new { message = "request not found" }); }
+            if (request == null) { return BadRequest(new { message = "error.notification.requestNotFaund" }); }
             request.IsAccepted = true;
             
             await requestNotificationService.Update(request);
@@ -479,7 +479,7 @@ namespace Task_Flow.WebAPI.Controllers
             await recentActivityService.Add(item);
             //await _hub.Clients.User(userId).SendAsync("RecentActivityUpdate1");
 
-            return Ok(new { message = "accept request succesfuly" });
+            return Ok(new { message = "succesfuly.notification.acceptRequest" });
         }
        
 

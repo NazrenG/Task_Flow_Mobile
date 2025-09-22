@@ -41,7 +41,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.chat.invalidToken");
             }
             var friend = await _userManager.FindByEmailAsync(dto.FriendEmail);
             var chat = await _chatService.GetByRecieverAndSenderId(friend.Id, userId);
@@ -95,7 +95,7 @@ namespace Task_Flow.WebAPI.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("Invalid token or user not found.");
+                return Unauthorized("error.chat.invalidToken");
             }
             if (string.IsNullOrEmpty(friendMail)) { return Ok(new {List=new List<UserMessageDto>()}); }
             var friend = await _userManager.FindByEmailAsync(friendMail);

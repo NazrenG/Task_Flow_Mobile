@@ -130,7 +130,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials()
             .WithOrigins(
-                "https://0c81393060c0.ngrok-free.app",   // your ngrok URL
+                 "https://f163ec360728.ngrok-free.app",   // your ngrok URL
                 "http://localhost:8081",   // Web/Emulator
                 "http://192.168.1.5:8081"             // for Expo / emulator
             );

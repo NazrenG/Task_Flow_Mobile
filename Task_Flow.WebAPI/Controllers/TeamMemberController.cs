@@ -133,7 +133,7 @@ namespace Task_Flow.WebAPI.Controllers
         {
             if (dto == null || dto.Members == null || !dto.Members.Any())
             {
-                return Ok(new { Message = "No member" });
+                return Ok(new { Message = "succesfuly.teammember.nomember" });
             }
 
             try
@@ -152,7 +152,7 @@ namespace Task_Flow.WebAPI.Controllers
                     //var isCheck = await _teamMemberService.GetTaskMemberById(user.Id);
                     if (user == null)
                     {
-                        return NotFound(new { Message = "User not found." });
+                        return NotFound(new { Message = "error.usernotFound" });
                     }
                     if (member.IsRequested==true)
                     {
@@ -206,7 +206,7 @@ namespace Task_Flow.WebAPI.Controllers
                     //await _teamMemberService.Add(teamMember);
                 }
 
-                return Ok(new { Message = "Team members added successfully!" });
+                return Ok(new { Message = "succesfuly.teammember.addmember" });
             }
             catch (Exception ex)
             {
@@ -259,7 +259,7 @@ namespace Task_Flow.WebAPI.Controllers
             var sender = await _userService.GetUserById(senderId);
             if (dto == null || dto.Members == null || !dto.Members.Any() )
             {
-                return Ok(new {Message="No member"});
+                return Ok(new {Message= "succesfuly.teammember.nomember" });
             }
 
             try
@@ -301,7 +301,7 @@ namespace Task_Flow.WebAPI.Controllers
                     ///signalr
                 }
 
-                return Ok(new { Message = "Team members added successfully!" });
+                return Ok(new { Message = "succesfuly.teammember.addmember" });
             }
             catch (Exception ex)
             {

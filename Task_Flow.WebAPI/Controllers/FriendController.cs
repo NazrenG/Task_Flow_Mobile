@@ -150,7 +150,7 @@ namespace Task_Flow.WebAPI.Controllers
             var existFriend = await friendService.GetFriendByUserAndFriendId(userId, friend.Id);
             if (existFriend == null) return Ok(new { message = "friend not found" });
             await friendService.Delete(existFriend);
-            return Ok(new { message = "accept request succesfuly" });
+            return Ok(new { message = "succesfuly.friend.acceptRequestSuccesfuly" });
 
         }
 
