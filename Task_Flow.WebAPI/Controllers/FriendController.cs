@@ -8,7 +8,8 @@ using Task_Flow.Business.Abstract;
 using Task_Flow.DataAccess.Abstract;
 using Task_Flow.Entities.Models;
 using Task_Flow.WebAPI.Dtos;
-//using Task_Flow.WebAPI.Hubs;
+using Task_Flow.WebAPI.Hubs;
+using Task_Flow.WebAPI.Hubs;
 
 namespace Task_Flow.WebAPI.Controllers
 {
@@ -20,15 +21,15 @@ namespace Task_Flow.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IRequestNotificationService _requestNotificationService;
-        //private readonly IHubContext<ConnectionHub> hubContext;
+        private readonly IHubContext<ConnectionHub> hubContext;
 
-        public FriendController(IFriendService friendService, IUserService userService, UserManager<CustomUser> userManager, IRequestNotificationService requestNotificationService)
+        public FriendController(IFriendService friendService,IHubContext<ConnectionHub> hubContext, IUserService userService, UserManager<CustomUser> userManager, IRequestNotificationService requestNotificationService)
         {
             this.friendService = friendService;
             _userService = userService;
             _userManager = userManager;
             _requestNotificationService = requestNotificationService;
-            //this.hubContext = hubContext;
+            this.hubContext = hubContext;
         }
 
         [Authorize]
@@ -38,7 +39,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
 
             var myrequests = await _requestNotificationService.GetNotificationsBySenderId(userId);
@@ -65,20 +66,46 @@ namespace Task_Flow.WebAPI.Controllers
 
         }
 
-        [HttpDelete()]
-        public async Task<IActionResult> DeleteRequest(int id)
+        [Authorize]
+        [HttpDelete("DeleteRequest/{friendId}")]
+        public async Task<IActionResult> DeleteRequest(string friendId)
         {
             try
             {
-                var request = await _requestNotificationService.GetRequestNotificationById(id); 
-               await _requestNotificationService.Delete(request);
-                return Ok();
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId == null)
+                {
+                    return BadRequest(new { message = "error.userNotAuth" });
+                }
+
+                var sentRequests = await _requestNotificationService.GetNotificationsBySenderId(userId);
+                var request = sentRequests.FirstOrDefault(r => r.ReceiverId == friendId && r.NotificationType == "FriendRequest");
+
+                if (request == null)
+                {
+                    var receivedRequests = await _requestNotificationService.GetRequestNotifications(userId);
+                    request = receivedRequests.FirstOrDefault(r => r.SenderId == friendId && r.NotificationType == "FriendRequest");
+                }
+
+                if (request == null)
+                {
+                    return NotFound(new { message = "Friend request not found or not deletable." });
+                }
+
+                await _requestNotificationService.Delete(request);
+
+                await hubContext.Clients.User(userId).SendAsync("UpdateUserActivity");
+
+                return Ok(new { message = "Friend request deleted successfully." });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
+
+
+
 
 
 
@@ -91,15 +118,17 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
-
+            var requestsList=await _requestNotificationService.GetNotificationsBySenderId(userId);
             var list = await friendService.GetFriends(userId);
             var result = new List<FriendDto>();
 
             foreach (var p in list)
             {
                 var check = await friendService.CheckFriendship(p.UserId, p.UserFriendId);
+                var hasPending = requestsList.Any(r => r.ReceiverId == p.UserFriendId && r.IsAccepted == false);
+
                 result.Add(new FriendDto
                 {
                     FriendName = p.UserFriend.Firstname + " " + p.UserFriend.Lastname,
@@ -109,6 +138,9 @@ namespace Task_Flow.WebAPI.Controllers
                     FriendPhoto = p.UserFriend.Image,
                     IsOnline = p.UserFriend.IsOnline,
                     CheckFriend = check,
+                    IsFriend=true,
+                    HasRequestPending=hasPending,
+                    
                 });
             }
             return Ok(result);
@@ -124,7 +156,7 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return BadRequest(new { message = "User not authenticated." });
+                return BadRequest(new { message = "error.userNotAuth" });
             }
             var item = new Friend
             {
@@ -143,13 +175,14 @@ namespace Task_Flow.WebAPI.Controllers
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized(new { message = "user not found" });
+                return Unauthorized(new { message = "error.usernotFound" });
             }
             var friend = await _userManager.FindByEmailAsync(friendMail);
-            if (friend == null) { return Ok(new { message = "friend not found" }); }
+            if (friend == null) { return Ok(new { message = "error.friend.friendNotFound" }); }
             var existFriend = await friendService.GetFriendByUserAndFriendId(userId, friend.Id);
             if (existFriend == null) return Ok(new { message = "friend not found" });
             await friendService.Delete(existFriend);
+            await hubContext.Clients.User(userId).SendAsync("UpdateUserActivity");
             return Ok(new { message = "succesfuly.friend.acceptRequestSuccesfuly" });
 
         }
@@ -160,7 +193,7 @@ namespace Task_Flow.WebAPI.Controllers
         public async Task<IActionResult> GetFriendContacts(string friendMail)
         {
             var friend = await _userManager.FindByEmailAsync(friendMail);
-            if (friend == null) { return Ok(new { message = "friend not found" }); }
+            if (friend == null) { return Ok(new { message = "error.friend.friendNotFound" }); }
             var dto = new FriendContactInfoDto{
             Number=friend?.PhoneNumber,
             Email=friend?.Email};

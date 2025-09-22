@@ -75,7 +75,7 @@ namespace Task_Flow.WebAPI.Hubs
 
                     await _userService.Update(currentUser);
 
-                    //await Clients.All.SendAsync("UpdateUserActivity");
+                    await Clients.All.SendAsync("UpdateUserActivity");
                     Console.WriteLine($"[SignalR] User '{currentUser.UserName}' is now ONLINE");
 
                     await Clients.Others.SendAsync("UpdateUserActivity");
@@ -103,9 +103,12 @@ namespace Task_Flow.WebAPI.Hubs
             await Clients.All.SendAsync("UpdateProjectList");
 
         }
-        public async Task SendFollow(string id)
+        public async Task SendFollow()
         {
-            await Clients.User(id).SendAsync("UpdateProfileRequestList");
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            await Clients.User(userId).SendAsync("UpdateUserActivity");
+            //await Clients.User(id).SendAsync("UpdateProfileRequestList");
         }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
